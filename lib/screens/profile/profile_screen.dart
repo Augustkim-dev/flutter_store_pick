@@ -10,6 +10,7 @@ import '../auth/login_screen.dart';
 import '../shop_detail_screen.dart';
 import '../debug_screen.dart';
 import '../test_favorite_screen.dart';
+import '../review_test_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -260,6 +261,17 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) => const TestFavoriteScreen(),
+                ),
+              );
+            },
+          ),
+          _buildMenuItem(
+            icon: Icons.rate_review,
+            title: 'Test Reviews',
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => const ReviewTestScreen(),
                 ),
               );
             },

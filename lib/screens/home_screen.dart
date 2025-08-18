@@ -3,6 +3,8 @@ import '../theme/app_colors.dart';
 import '../models/shop.dart';
 import '../widgets/shop_card.dart';
 import '../services/shop_service.dart';
+import '../services/review_service.dart';
+import '../models/review.dart';
 import 'shop_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -14,8 +16,10 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final ShopService _shopService = ShopService();
+  final ReviewService _reviewService = ReviewService();
   ShopType? selectedFilter;
   List<Shop> filteredShops = [];
+  Map<String, ShopRating> shopRatings = {};
   bool isLoading = true;
   String? errorMessage;
 
@@ -36,6 +40,15 @@ class _HomeScreenState extends State<HomeScreen> {
       final shops = selectedFilter == null
           ? await _shopService.getAllShops()
           : await _shopService.getShopsByType(selectedFilter!);
+      
+      // 상점 목록을 가져온 후 평점 정보도 가져오기
+      if (shops.isNotEmpty) {
+        final shopIds = shops.map((s) => s.id).toList();
+        final ratings = await _reviewService.getMultipleShopRatings(shopIds);
+        setState(() {
+          shopRatings = ratings;
+        });
+      }
       
       setState(() {
         filteredShops = shops;
@@ -148,14 +161,19 @@ class _HomeScreenState extends State<HomeScreen> {
                               itemCount: filteredShops.length,
                               itemBuilder: (context, index) {
                                 final shop = filteredShops[index];
+                                final rating = shopRatings[shop.id];
                                 return ShopCard(
+                                  key: ValueKey(shop.id),
                                   shop: shop,
-                                  onTap: () {
-                                    Navigator.of(context).push(
+                                  shopRating: rating,
+                                  onTap: () async {
+                                    await Navigator.of(context).push(
                                       MaterialPageRoute(
                                         builder: (context) => ShopDetailScreen(shop: shop),
                                       ),
                                     );
+                                    // 상세 화면에서 돌아온 후 평점 다시 로드
+                                    _loadShops();
                                   },
                                 );
                               },
