@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/shop.dart';
 import '../theme/app_colors.dart';
+import 'favorite_button.dart';
 
 class ShopCard extends StatelessWidget {
   final Shop shop;
@@ -127,6 +128,11 @@ class ShopCard extends StatelessWidget {
                           searchQuery,
                           Theme.of(context).textTheme.titleLarge!,
                         ),
+                      ),
+                      // 즐겨찾기 버튼
+                      FavoriteButton(
+                        shopId: shop.id,
+                        size: 20,
                       ),
                       // 평점
                       Row(

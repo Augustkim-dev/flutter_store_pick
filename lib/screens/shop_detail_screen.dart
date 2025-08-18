@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/shop.dart';
 import '../theme/app_colors.dart';
+import '../widgets/favorite_button.dart';
 
 class ShopDetailScreen extends StatelessWidget {
   final Shop shop;
@@ -26,11 +27,9 @@ class ShopDetailScreen extends StatelessWidget {
               // 공유 기능 추후 구현
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.favorite_border),
-            onPressed: () {
-              // 즐겨찾기 기능 추후 구현
-            },
+          FavoriteButton(
+            shopId: shop.id,
+            size: 24,
           ),
         ],
       ),
