@@ -1,9 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'screens/splash_screen.dart';
 import 'screens/main_screen.dart';
 import 'theme/app_theme.dart';
+import 'services/supabase_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Supabase 초기화 시도 (실패해도 앱은 실행됨)
+  try {
+    await SupabaseService().initialize();
+    if (kDebugMode) {
+      print('Supabase initialized successfully');
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      print('Failed to initialize Supabase: $e');
+      print('App will run with dummy data');
+    }
+  }
+  
   runApp(const BalletShopApp());
 }
 

@@ -47,7 +47,7 @@ class SearchScreen extends StatelessWidget {
                   Icon(
                     Icons.search,
                     size: 80,
-                    color: AppColors.secondaryAccent.withOpacity(0.5),
+                    color: AppColors.secondaryAccent.withAlpha(128),
                   ),
                   const SizedBox(height: 16),
                   Text(
