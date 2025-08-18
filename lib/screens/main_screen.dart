@@ -13,19 +13,37 @@ class MainScreen extends StatefulWidget {
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const SearchScreen(),
-    const ProfileScreen(),
+  final List<GlobalKey<NavigatorState>> _navigatorKeys = [
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
+    GlobalKey<NavigatorState>(),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
-      ),
+    return WillPopScope(
+      onWillPop: () async {
+        final isFirstRouteInCurrentTab =
+            !await _navigatorKeys[_currentIndex].currentState!.maybePop();
+        if (isFirstRouteInCurrentTab) {
+          if (_currentIndex != 0) {
+            setState(() {
+              _currentIndex = 0;
+            });
+            return false;
+          }
+        }
+        return isFirstRouteInCurrentTab;
+      },
+      child: Scaffold(
+        body: IndexedStack(
+          index: _currentIndex,
+          children: [
+            _buildNavigator(0, const HomeScreen()),
+            _buildNavigator(1, const SearchScreen()),
+            _buildNavigator(2, const ProfileScreen()),
+          ],
+        ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
@@ -61,7 +79,19 @@ class _MainScreenState extends State<MainScreen> {
             ),
           ],
         ),
+        ),
       ),
+    );
+  }
+  
+  Widget _buildNavigator(int index, Widget screen) {
+    return Navigator(
+      key: _navigatorKeys[index],
+      onGenerateRoute: (routeSettings) {
+        return MaterialPageRoute(
+          builder: (context) => screen,
+        );
+      },
     );
   }
 }

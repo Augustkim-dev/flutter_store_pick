@@ -151,8 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 return ShopCard(
                                   shop: shop,
                                   onTap: () {
-                                    Navigator.push(
-                                      context,
+                                    Navigator.of(context).push(
                                       MaterialPageRoute(
                                         builder: (context) => ShopDetailScreen(shop: shop),
                                       ),

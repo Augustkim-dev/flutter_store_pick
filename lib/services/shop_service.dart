@@ -117,16 +117,41 @@ class ShopService {
     }
     
     try {
-      // Supabase에서 검색
-      final response = await _supabaseService.client
+      // Supabase에서 검색 - 브랜드 배열도 검색 대상에 포함
+      // PostgreSQL의 배열 검색을 위해 별도 쿼리 후 합치기
+      final nameDescResponse = await _supabaseService.client
           .from('shops')
           .select()
           .or('name.ilike.%$query%,description.ilike.%$query%')
           .order('rating', ascending: false);
       
-      final List<Shop> shops = (response as List)
+      // 브랜드 배열에서 검색 (대소문자 구분 없이)
+      final allShopsResponse = await _supabaseService.client
+          .from('shops')
+          .select()
+          .order('rating', ascending: false);
+      
+      final List<Shop> nameDescResults = (nameDescResponse as List)
           .map((json) => Shop.fromJson(json))
           .toList();
+      
+      final List<Shop> brandResults = (allShopsResponse as List)
+          .map((json) => Shop.fromJson(json))
+          .where((shop) => shop.brands.any((brand) => 
+              brand.toLowerCase().contains(lowercaseQuery)))
+          .toList();
+      
+      // 중복 제거하며 결과 합치기
+      final Map<String, Shop> shopMap = {};
+      for (final shop in nameDescResults) {
+        shopMap[shop.id] = shop;
+      }
+      for (final shop in brandResults) {
+        shopMap[shop.id] = shop;
+      }
+      
+      final List<Shop> shops = shopMap.values.toList();
+      shops.sort((a, b) => b.rating.compareTo(a.rating)); // 평점순 정렬
       
       return shops;
     } catch (e) {

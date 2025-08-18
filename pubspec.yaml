@@ -37,6 +37,7 @@ dependencies:
   
   # Supabase for backend services
   supabase_flutter: ^2.0.0
+  shared_preferences: ^2.5.3
 
 dev_dependencies:
   flutter_test:

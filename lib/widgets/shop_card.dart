@@ -5,11 +5,13 @@ import '../theme/app_colors.dart';
 class ShopCard extends StatelessWidget {
   final Shop shop;
   final VoidCallback onTap;
+  final String? searchQuery;
   
   const ShopCard({
     super.key,
     required this.shop,
     required this.onTap,
+    this.searchQuery,
   });
 
   @override
@@ -119,11 +121,11 @@ class ShopCard extends StatelessWidget {
                   Row(
                     children: [
                       Expanded(
-                        child: Text(
+                        child: _buildHighlightedText(
+                          context,
                           shop.name,
-                          style: Theme.of(context).textTheme.titleLarge,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          searchQuery,
+                          Theme.of(context).textTheme.titleLarge!,
                         ),
                       ),
                       // 평점
@@ -152,11 +154,12 @@ class ShopCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   
                   // 설명
-                  Text(
+                  _buildHighlightedText(
+                    context,
                     shop.description,
-                    style: Theme.of(context).textTheme.bodyMedium,
+                    searchQuery,
+                    Theme.of(context).textTheme.bodyMedium!,
                     maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 12),
                   
@@ -195,9 +198,11 @@ class ShopCard extends StatelessWidget {
                         color: AppColors.secondaryPurple,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Text(
+                      child: _buildHighlightedText(
+                        context,
                         brand,
-                        style: const TextStyle(
+                        searchQuery,
+                        const TextStyle(
                           fontSize: 11,
                           color: AppColors.secondaryAccent,
                           fontWeight: FontWeight.w500,
@@ -234,5 +239,59 @@ class ShopCard extends StatelessWidget {
       case ShopType.hybrid:
         return Icons.storefront;
     }
+  }
+  
+  Widget _buildHighlightedText(
+    BuildContext context,
+    String text,
+    String? query,
+    TextStyle style, {
+    int maxLines = 1,
+  }) {
+    if (query == null || query.isEmpty) {
+      return Text(
+        text,
+        style: style,
+        maxLines: maxLines,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+    
+    final lowerText = text.toLowerCase();
+    final lowerQuery = query.toLowerCase();
+    final startIndex = lowerText.indexOf(lowerQuery);
+    
+    if (startIndex == -1) {
+      return Text(
+        text,
+        style: style,
+        maxLines: maxLines,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+    
+    final endIndex = startIndex + query.length;
+    final beforeMatch = text.substring(0, startIndex);
+    final match = text.substring(startIndex, endIndex);
+    final afterMatch = text.substring(endIndex);
+    
+    return RichText(
+      maxLines: maxLines,
+      overflow: TextOverflow.ellipsis,
+      text: TextSpan(
+        style: style,
+        children: [
+          TextSpan(text: beforeMatch),
+          TextSpan(
+            text: match,
+            style: style.copyWith(
+              backgroundColor: AppColors.primaryPink.withAlpha(51),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          TextSpan(text: afterMatch),
+        ],
+      ),
+    );
   }
 }
