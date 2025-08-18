@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'search_screen.dart';
+import 'map_screen.dart';
 import 'profile_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -14,6 +15,7 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   
   final List<GlobalKey<NavigatorState>> _navigatorKeys = [
+    GlobalKey<NavigatorState>(),
     GlobalKey<NavigatorState>(),
     GlobalKey<NavigatorState>(),
     GlobalKey<NavigatorState>(),
@@ -41,7 +43,8 @@ class _MainScreenState extends State<MainScreen> {
           children: [
             _buildNavigator(0, const HomeScreen()),
             _buildNavigator(1, const SearchScreen()),
-            _buildNavigator(2, const ProfileScreen()),
+            _buildNavigator(2, const MapScreen()),
+            _buildNavigator(3, const ProfileScreen()),
           ],
         ),
       bottomNavigationBar: Container(
@@ -61,6 +64,7 @@ class _MainScreenState extends State<MainScreen> {
               _currentIndex = index;
             });
           },
+          type: BottomNavigationBarType.fixed,
           items: const [
             BottomNavigationBarItem(
               icon: Icon(Icons.home_outlined),
@@ -71,6 +75,11 @@ class _MainScreenState extends State<MainScreen> {
               icon: Icon(Icons.search_outlined),
               activeIcon: Icon(Icons.search),
               label: '검색',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.map_outlined),
+              activeIcon: Icon(Icons.map),
+              label: '지도',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person_outline),

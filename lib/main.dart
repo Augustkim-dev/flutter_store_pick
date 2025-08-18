@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_naver_map/flutter_naver_map.dart';
 import 'screens/splash_screen.dart';
 import 'screens/main_screen.dart';
 import 'theme/app_theme.dart';
@@ -7,7 +8,30 @@ import 'services/supabase_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 네이버 지도 초기화
+  await FlutterNaverMap().init(
+    clientId: 'aq7q955sfn', // Naver Cloud Platform에서 발급받은 Client ID
+    onAuthFailed: (ex) {
+      if (kDebugMode) {
+        switch (ex) {
+          case NQuotaExceededException(:final message):
+            print("사용량 초과 (message: $message)");
+            break;
+          case NUnauthorizedClientException() ||
+               NClientUnspecifiedException() ||
+               NAnotherAuthFailedException():
+            print("인증 실패: $ex");
+            break;
+        }
+      }
+    },
+  );
   
+  if (kDebugMode) {
+    print('Naver Map initialized successfully');
+  }
+
   // Supabase 초기화 시도 (실패해도 앱은 실행됨)
   try {
     await SupabaseService().initialize();
@@ -20,7 +44,7 @@ void main() async {
       print('App will run with dummy data');
     }
   }
-  
+
   runApp(const BalletShopApp());
 }
 
@@ -34,10 +58,7 @@ class BalletShopApp extends StatelessWidget {
       theme: AppTheme.lightTheme,
       debugShowCheckedModeBanner: false,
       initialRoute: '/',
-      routes: {
-        '/': (context) => const SplashScreen(),
-        '/main': (context) => const MainScreen(),
-      },
+      routes: {'/': (context) => const SplashScreen(), '/main': (context) => const MainScreen()},
     );
   }
 }
