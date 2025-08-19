@@ -98,7 +98,59 @@ class ShopService {
     }).toList();
   }
   
-  // 검색 기능
+  // 간단한 검색 기능 (simple_search 함수 사용)
+  Future<List<Shop>> simpleSearchShops(String query) async {
+    if (query.isEmpty) {
+      return getAllShops();
+    }
+    
+    if (!_useSupabase) {
+      // 더미 데이터에서 검색
+      final lowercaseQuery = query.toLowerCase();
+      return DummyShops.shops.where((shop) {
+        return shop.name.toLowerCase().contains(lowercaseQuery) ||
+               shop.description.toLowerCase().contains(lowercaseQuery) ||
+               shop.brands.any((brand) => 
+                   brand.toLowerCase().contains(lowercaseQuery));
+      }).toList();
+    }
+    
+    try {
+      // simple_search RPC 함수 호출
+      final response = await _supabaseService.client
+          .rpc('simple_search', params: {'query_text': query});
+      
+      if (response == null) {
+        return [];
+      }
+      
+      final List<Shop> shops = (response as List)
+          .map((json) {
+            // 함수에서 반환된 컬럼명을 Shop 모델의 필드명으로 매핑
+            final shopData = <String, dynamic>{
+              'id': json['shop_id'],
+              'name': json['shop_name'],
+              'shop_type': json['shop_type'],
+              'description': json['shop_description'],
+              'brands': json['shop_brands'],
+              'rating': json['shop_rating'],
+              'address': json['shop_address'],
+              'website_url': json['shop_website_url'],
+            };
+            return Shop.fromJson(shopData);
+          })
+          .toList();
+      
+      return shops;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error in simple search: $e');
+      }
+      return [];
+    }
+  }
+  
+  // 검색 기능 (한글/영어 통합 검색 - search_all 함수 사용)
   Future<List<Shop>> searchShops(String query) async {
     if (query.isEmpty) {
       return getAllShops();
@@ -117,54 +169,67 @@ class ShopService {
     }
     
     try {
-      // Supabase에서 검색 - 브랜드 배열도 검색 대상에 포함
-      // PostgreSQL의 배열 검색을 위해 별도 쿼리 후 합치기
-      final nameDescResponse = await _supabaseService.client
-          .from('shops')
-          .select()
-          .or('name.ilike.%$query%,description.ilike.%$query%')
-          .order('rating', ascending: false);
+      // RPC 함수를 사용한 통합 검색 (한글/영어 브랜드명 지원)
+      final response = await _supabaseService.client
+          .rpc('search_all', params: {'query_text': query});
       
-      // 브랜드 배열에서 검색 (대소문자 구분 없이)
-      final allShopsResponse = await _supabaseService.client
-          .from('shops')
-          .select()
-          .order('rating', ascending: false);
-      
-      final List<Shop> nameDescResults = (nameDescResponse as List)
-          .map((json) => Shop.fromJson(json))
-          .toList();
-      
-      final List<Shop> brandResults = (allShopsResponse as List)
-          .map((json) => Shop.fromJson(json))
-          .where((shop) => shop.brands.any((brand) => 
-              brand.toLowerCase().contains(lowercaseQuery)))
-          .toList();
-      
-      // 중복 제거하며 결과 합치기
-      final Map<String, Shop> shopMap = {};
-      for (final shop in nameDescResults) {
-        shopMap[shop.id] = shop;
-      }
-      for (final shop in brandResults) {
-        shopMap[shop.id] = shop;
+      if (response == null) {
+        return [];
       }
       
-      final List<Shop> shops = shopMap.values.toList();
-      shops.sort((a, b) => b.rating.compareTo(a.rating)); // 평점순 정렬
+      final List<Shop> shops = (response as List)
+          .map((json) {
+            // 함수에서 반환된 컬럼명을 Shop 모델의 필드명으로 매핑
+            final shopData = <String, dynamic>{
+              'id': json['shop_id'],
+              'name': json['shop_name'],
+              'shop_type': json['shop_type'],
+              'description': json['shop_description'],
+              'brands': json['shop_brands'],
+              'rating': json['shop_rating'],
+              'review_count': json['shop_review_count'],
+              'image_url': json['shop_image_url'],
+              'address': json['shop_address'],
+              'phone': json['shop_phone'],
+              'latitude': json['shop_latitude'],
+              'longitude': json['shop_longitude'],
+              'website_url': json['shop_website_url'],
+            };
+            return Shop.fromJson(shopData);
+          })
+          .toList();
       
       return shops;
     } catch (e) {
       if (kDebugMode) {
-        print('Error searching shops in Supabase: $e');
+        print('Error searching shops with RPC: $e');
       }
-      // 에러 발생 시 더미 데이터에서 검색
-      return DummyShops.shops.where((shop) {
-        return shop.name.toLowerCase().contains(lowercaseQuery) ||
-               shop.description.toLowerCase().contains(lowercaseQuery) ||
-               shop.brands.any((brand) => 
-                   brand.toLowerCase().contains(lowercaseQuery));
-      }).toList();
+      
+      // RPC 실패 시 기존 방식으로 폴백
+      try {
+        final nameDescResponse = await _supabaseService.client
+            .from('shops')
+            .select()
+            .or('name.ilike.%$query%,description.ilike.%$query%')
+            .order('rating', ascending: false);
+        
+        final List<Shop> shops = (nameDescResponse as List)
+            .map((json) => Shop.fromJson(json))
+            .toList();
+        
+        return shops;
+      } catch (fallbackError) {
+        if (kDebugMode) {
+          print('Error in fallback search: $fallbackError');
+        }
+        // 모든 검색 실패 시 더미 데이터에서 검색
+        return DummyShops.shops.where((shop) {
+          return shop.name.toLowerCase().contains(lowercaseQuery) ||
+                 shop.description.toLowerCase().contains(lowercaseQuery) ||
+                 shop.brands.any((brand) => 
+                     brand.toLowerCase().contains(lowercaseQuery));
+        }).toList();
+      }
     }
   }
   
