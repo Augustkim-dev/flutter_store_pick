@@ -11,6 +11,7 @@ import '../shop_detail_screen.dart';
 import '../debug_screen.dart';
 import '../test_favorite_screen.dart';
 import '../review_test_screen.dart';
+import '../shop/shop_management_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -215,6 +216,20 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
           const SizedBox(height: 32),
           
           // 메뉴 리스트
+          if (_userProfile!.userType == UserType.shopOwner) ...[
+            _buildMenuItem(
+              icon: Icons.store,
+              title: '내 상점 관리',
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const ShopManagementScreen(),
+                  ),
+                );
+              },
+            ),
+            const Divider(),
+          ],
           _buildMenuItem(
             icon: Icons.person_outline,
             title: '프로필 수정',
@@ -424,7 +439,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
     switch (userType) {
       case UserType.admin:
         return Colors.purple;
-      case UserType.shop:
+      case UserType.shopOwner:
         return Colors.blue;
       case UserType.general:
       default:

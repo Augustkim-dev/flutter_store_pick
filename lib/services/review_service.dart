@@ -3,6 +3,11 @@ import '../models/review.dart';
 
 class ReviewService {
   final _supabase = Supabase.instance.client;
+  
+  // Supabase 모드 설정 (ShopService와 일관성을 위해)
+  void setSupabaseMode(bool enabled) {
+    // ReviewService는 항상 Supabase를 사용하므로 이 메서드는 비어있음
+  }
 
   // 상점의 리뷰 목록 가져오기
   Future<List<Review>> getShopReviews(String shopId) async {

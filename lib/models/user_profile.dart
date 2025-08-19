@@ -1,6 +1,6 @@
 enum UserType {
   general('general', '일반 회원'),
-  shop('shop', '상점 회원'),
+  shopOwner('shop_owner', '상점 회원'),
   admin('admin', '관리자');
 
   final String value;

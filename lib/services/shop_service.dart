@@ -181,4 +181,86 @@ class ShopService {
     allShops.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return allShops.take(limit).toList();
   }
+  
+  // 소유자별 상점 가져오기
+  Future<List<Shop>> getShopsByOwner(String ownerId) async {
+    if (!_useSupabase) {
+      // 더미 데이터에서는 빈 리스트 반환
+      return [];
+    }
+    
+    try {
+      final response = await _supabaseService.client
+          .from('shops')
+          .select()
+          .eq('owner_id', ownerId)
+          .order('created_at', ascending: false);
+      
+      final List<Shop> shops = (response as List)
+          .map((json) => Shop.fromJson(json))
+          .toList();
+      
+      return shops;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching shops by owner: $e');
+      }
+      return [];
+    }
+  }
+  
+  // 상점 정보 업데이트
+  Future<bool> updateShop(Shop shop) async {
+    if (!_useSupabase) {
+      return false;
+    }
+    
+    try {
+      await _supabaseService.client
+          .from('shops')
+          .update(shop.toJson())
+          .eq('id', shop.id);
+      
+      return true;
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error updating shop: $e');
+      }
+      return false;
+    }
+  }
+  
+  // 상점 통계 가져오기
+  Future<Map<String, dynamic>> getShopStats(String shopId) async {
+    if (!_useSupabase) {
+      return {
+        'review_count': 0,
+        'average_rating': 0.0,
+        'favorite_count': 0,
+      };
+    }
+    
+    try {
+      final response = await _supabaseService.client
+          .rpc('get_shop_stats', params: {'shop_uuid': shopId});
+      
+      if (response is List && response.isNotEmpty) {
+        return response.first as Map<String, dynamic>;
+      }
+      return {
+        'review_count': 0,
+        'average_rating': 0.0,
+        'favorite_count': 0,
+      };
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching shop stats: $e');
+      }
+      return {
+        'review_count': 0,
+        'average_rating': 0.0,
+        'favorite_count': 0,
+      };
+    }
+  }
 }

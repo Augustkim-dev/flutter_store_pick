@@ -40,6 +40,7 @@ class Shop {
   final double rating;
   final int reviewCount;
   final String imageUrl;
+  final String? ownerId;  // 상점 소유자 ID
   
   // 오프라인 상점 정보
   final String? address;
@@ -70,6 +71,7 @@ class Shop {
     required this.rating,
     required this.reviewCount,
     required this.imageUrl,
+    this.ownerId,
     this.address,
     this.phone,
     this.latitude,
@@ -114,6 +116,7 @@ class Shop {
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       reviewCount: json['review_count'] as int? ?? 0,
       imageUrl: json['image_url'] as String? ?? '',
+      ownerId: json['owner_id'] as String?,
       address: json['address'] as String?,
       phone: json['phone'] as String?,
       latitude: (json['latitude'] as num?)?.toDouble(),
@@ -143,6 +146,7 @@ class Shop {
       'rating': rating,
       'review_count': reviewCount,
       'image_url': imageUrl,
+      'owner_id': ownerId,
       'address': address,
       'phone': phone,
       'latitude': latitude,
