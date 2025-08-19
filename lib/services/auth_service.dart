@@ -157,6 +157,20 @@ class AuthService {
     String? fullName,
   }) async {
     try {
+      // 먼저 기존 프로필이 있는지 확인
+      final existingProfile = await _supabase
+          .from('profiles')
+          .select('id, user_type')
+          .eq('id', userId)
+          .maybeSingle();
+      
+      if (existingProfile != null) {
+        // 프로필이 이미 존재하면 스킵 (user_type 유지)
+        print('Profile already exists for user: $userId with user_type: ${existingProfile['user_type']}');
+        return;
+      }
+      
+      // 프로필이 없으면 새로 생성
       await _supabase.from('profiles').insert({
         'id': userId,
         'full_name': fullName,
@@ -177,29 +191,46 @@ class AuthService {
     try {
       print('Ensuring profile exists for user ${user.id}');
       
-      // upsert를 사용하여 프로필이 없으면 생성, 있으면 업데이트
-      await _supabase.from('profiles').upsert({
-        'id': user.id,
-        'full_name': user.userMetadata?['full_name'],
-        'user_type': 'general',
-        'updated_at': DateTime.now().toIso8601String(),
-      }, onConflict: 'id');
+      // 먼저 기존 프로필이 있는지 확인
+      final existingProfile = await _supabase
+          .from('profiles')
+          .select('id, user_type')
+          .eq('id', user.id)
+          .maybeSingle();
+      
+      if (existingProfile != null) {
+        // 프로필이 이미 존재하면 user_type은 유지하고 updated_at만 업데이트
+        print('Profile already exists for user ${user.id}, keeping user_type: ${existingProfile['user_type']}');
+        await _supabase.from('profiles').update({
+          'updated_at': DateTime.now().toIso8601String(),
+        }).eq('id', user.id);
+      } else {
+        // 프로필이 없으면 새로 생성
+        print('Creating new profile for user ${user.id}');
+        await _supabase.from('profiles').insert({
+          'id': user.id,
+          'full_name': user.userMetadata?['full_name'],
+          'user_type': 'general',
+          'created_at': DateTime.now().toIso8601String(),
+          'updated_at': DateTime.now().toIso8601String(),
+        });
+      }
       
       // 프로필 생성/업데이트 확인
       final profile = await _supabase
           .from('profiles')
-          .select('id')
+          .select('id, user_type')
           .eq('id', user.id)
           .single();
       
       if (profile != null) {
-        print('Profile confirmed for user ${user.id}');
+        print('Profile confirmed for user ${user.id} with user_type: ${profile['user_type']}');
       } else {
         throw Exception('Profile creation failed for user ${user.id}');
       }
     } catch (e) {
       print('Error ensuring profile exists: $e');
-      // 재시도
+      // 재시도 (새 프로필 생성만)
       try {
         print('Retrying profile creation...');
         await _supabase.from('profiles').insert({

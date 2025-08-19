@@ -5,23 +5,33 @@ import 'screens/splash_screen.dart';
 import 'screens/main_screen.dart';
 import 'theme/app_theme.dart';
 import 'services/supabase_service.dart';
+import 'config/app_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 설정 검증
+  try {
+    AppConfig.validateConfig();
+  } catch (e) {
+    if (kDebugMode) {
+      print('Configuration error: $e');
+    }
+  }
+
   // 네이버 지도 초기화
   await FlutterNaverMap().init(
-    clientId: 'aq7q955sfn', // Naver Cloud Platform에서 발급받은 Client ID
+    clientId: AppConfig.naverMapClientId,
     onAuthFailed: (ex) {
       if (kDebugMode) {
         switch (ex) {
           case NQuotaExceededException(:final message):
-            print("사용량 초과 (message: $message)");
+            AppConfig.debugPrint("사용량 초과 (message: $message)");
             break;
           case NUnauthorizedClientException() ||
                NClientUnspecifiedException() ||
                NAnotherAuthFailedException():
-            print("인증 실패: $ex");
+            AppConfig.debugPrint("인증 실패: $ex");
             break;
         }
       }
