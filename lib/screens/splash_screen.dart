@@ -50,58 +50,92 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _checkVersionAndNavigate() async {
+    final stopwatch = Stopwatch()..start();
+    
     setState(() {
       _isCheckingVersion = true;
     });
 
+    // 버전 체크와 최소 표시 시간을 병렬로 처리
+    final futures = <Future>[];
+    
+    // 버전 체크 Future
+    VersionCheckResult? versionResult;
+    VersionService? versionService;
+    
+    futures.add(
+      Future(() async {
+        try {
+          // VersionService 초기화
+          versionService = VersionService();
+          await versionService!.initialize();
+          
+          // Remote Config 새로고침 (비동기적으로 처리)
+          await versionService!.refresh();
+          
+          // 버전 체크
+          versionResult = versionService!.checkVersion();
+          
+          if (kDebugMode) {
+            print('===== Version Check Debug Info =====');
+            print('Current version: ${versionService!.currentVersion}');
+            print('Minimum version: ${versionService!.minimumVersion}');
+            print('Latest version: ${versionService!.latestVersion}');
+            print('Force update: ${versionService!.isForceUpdate}');
+            print('Maintenance mode: ${versionService!.isMaintenanceMode}');
+            print('Version check result: $versionResult');
+            print('=====================================');
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            print('Error during version check: $e');
+          }
+          versionResult = VersionCheckResult.upToDate; // 에러 시 기본값
+        }
+      })
+    );
+    
+    // 최소 표시 시간 (2초 -> 0.5초로 단축)
+    futures.add(
+      Future.delayed(const Duration(milliseconds: 500))
+    );
+    
+    // 병렬 실행 - 둘 중 더 오래 걸리는 것만큼 대기
+    await Future.wait(futures);
+    
+    stopwatch.stop();
+    if (kDebugMode) {
+      print('⏱️ Splash screen displayed for ${stopwatch.elapsedMilliseconds}ms');
+    }
+
+    if (!mounted) return;
+    
     try {
-      // VersionService 초기화
-      final versionService = VersionService();
-      await versionService.initialize();
-      
-      // Remote Config 강제 새로고침 (최신 값 가져오기)
-      await versionService.refresh();
-
-      // 버전 체크
-      final result = versionService.checkVersion();
-      
-      if (kDebugMode) {
-        print('===== Version Check Debug Info =====');
-        print('Current version: ${versionService.currentVersion}');
-        print('Minimum version: ${versionService.minimumVersion}');
-        print('Latest version: ${versionService.latestVersion}');
-        print('Force update: ${versionService.isForceUpdate}');
-        print('Maintenance mode: ${versionService.isMaintenanceMode}');
-        print('Version check result: $result');
-        print('=====================================');
-      }
-
-      // 최소 2초는 스플래시 화면 표시
-      await Future.delayed(const Duration(seconds: 2));
-
-      if (!mounted) return;
-
       // 버전에 따른 처리
-      switch (result) {
+      switch (versionResult ?? VersionCheckResult.upToDate) {
         case VersionCheckResult.forceUpdate:
           // 강제 업데이트 다이얼로그 표시
-          await UpdateDialog.showForceUpdateDialog(
-            context,
-            currentVersion: versionService.currentVersion,
-            requiredVersion: versionService.minimumVersion,
-            message: versionService.updateMessage,
-            updateUrl: versionService.updateUrl,
-          );
+          if (versionService != null) {
+            await UpdateDialog.showForceUpdateDialog(
+              context,
+              currentVersion: versionService!.currentVersion,
+              requiredVersion: versionService!.minimumVersion,
+              message: versionService!.updateMessage,
+              updateUrl: versionService!.updateUrl,
+            );
+          }
           break;
         case VersionCheckResult.optionalUpdate:
           // 선택적 업데이트 다이얼로그 표시
-          await UpdateDialog.showOptionalUpdateDialog(
-            context,
-            currentVersion: versionService.currentVersion,
-            latestVersion: versionService.latestVersion,
-            message: versionService.updateMessage,
-            updateUrl: versionService.updateUrl,
-          );
+          if (versionService != null) {
+            await UpdateDialog.showOptionalUpdateDialog(
+              context,
+              currentVersion: versionService!.currentVersion,
+              latestVersion: versionService!.latestVersion,
+              message: versionService!.updateMessage,
+              updateUrl: versionService!.updateUrl,
+            );
+          }
           // 다이얼로그 닫은 후 메인 화면으로 이동
           if (mounted) {
             Navigator.pushReplacementNamed(context, '/main');
@@ -109,12 +143,15 @@ class _SplashScreenState extends State<SplashScreen>
           break;
         case VersionCheckResult.maintenance:
           // 서버 점검 다이얼로그 표시
-          await UpdateDialog.showMaintenanceDialog(
-            context,
-            message: versionService.maintenanceMessage,
-          );
+          if (versionService != null) {
+            await UpdateDialog.showMaintenanceDialog(
+              context,
+              message: versionService!.maintenanceMessage,
+            );
+          }
           break;
         case VersionCheckResult.upToDate:
+        default:
           // 최신 버전이므로 메인 화면으로 이동
           if (mounted) {
             Navigator.pushReplacementNamed(context, '/main');
@@ -123,7 +160,7 @@ class _SplashScreenState extends State<SplashScreen>
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error during version check: $e');
+        print('Error in splash screen navigation: $e');
       }
       // 에러 발생시에도 메인 화면으로 이동
       if (mounted) {

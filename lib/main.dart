@@ -12,21 +12,10 @@ import 'config/app_config.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Firebase 초기화
-  try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    if (kDebugMode) {
-      print('Firebase initialized successfully');
-    }
-  } catch (e) {
-    if (kDebugMode) {
-      print('Failed to initialize Firebase: $e');
-    }
-  }
-
-  // 설정 검증
+  // 성능 측정을 위한 시작 시간 기록
+  final stopwatch = Stopwatch()..start();
+  
+  // 설정 검증 (병렬 처리 전에 실행)
   try {
     AppConfig.validateConfig();
   } catch (e) {
@@ -35,40 +24,76 @@ void main() async {
     }
   }
 
-  // 네이버 지도 초기화
-  await FlutterNaverMap().init(
-    clientId: AppConfig.naverMapClientId,
-    onAuthFailed: (ex) {
-      if (kDebugMode) {
-        switch (ex) {
-          case NQuotaExceededException(:final message):
-            AppConfig.debugPrint("사용량 초과 (message: $message)");
-            break;
-          case NUnauthorizedClientException() ||
-               NClientUnspecifiedException() ||
-               NAnotherAuthFailedException():
-            AppConfig.debugPrint("인증 실패: $ex");
-            break;
-        }
-      }
-    },
-  );
+  // 모든 서비스를 병렬로 초기화
+  final List<Future<void>> initFutures = [];
   
-  if (kDebugMode) {
-    print('Naver Map initialized successfully');
-  }
+  // Firebase 초기화
+  initFutures.add(
+    Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    ).then((_) {
+      if (kDebugMode) {
+        print('✅ Firebase initialized successfully');
+      }
+    }).catchError((e) {
+      if (kDebugMode) {
+        print('❌ Failed to initialize Firebase: $e');
+      }
+      return null;
+    })
+  );
 
-  // Supabase 초기화 시도 (실패해도 앱은 실행됨)
-  try {
-    await SupabaseService().initialize();
-    if (kDebugMode) {
-      print('Supabase initialized successfully');
-    }
-  } catch (e) {
-    if (kDebugMode) {
-      print('Failed to initialize Supabase: $e');
-      print('App will run with dummy data');
-    }
+  // 네이버 지도 초기화
+  initFutures.add(
+    FlutterNaverMap().init(
+      clientId: AppConfig.naverMapClientId,
+      onAuthFailed: (ex) {
+        if (kDebugMode) {
+          switch (ex) {
+            case NQuotaExceededException(:final message):
+              AppConfig.debugPrint("사용량 초과 (message: $message)");
+              break;
+            case NUnauthorizedClientException() ||
+                 NClientUnspecifiedException() ||
+                 NAnotherAuthFailedException():
+              AppConfig.debugPrint("인증 실패: $ex");
+              break;
+          }
+        }
+      },
+    ).then((_) {
+      if (kDebugMode) {
+        print('✅ Naver Map initialized successfully');
+      }
+    }).catchError((e) {
+      if (kDebugMode) {
+        print('❌ Failed to initialize Naver Map: $e');
+      }
+      return null;
+    })
+  );
+
+  // Supabase 초기화 (실패해도 앱은 실행됨)
+  initFutures.add(
+    SupabaseService().initialize().then((_) {
+      if (kDebugMode) {
+        print('✅ Supabase initialized successfully');
+      }
+    }).catchError((e) {
+      if (kDebugMode) {
+        print('⚠️ Failed to initialize Supabase: $e');
+        print('ℹ️ App will run with dummy data');
+      }
+      return null;
+    })
+  );
+
+  // 모든 초기화 작업을 병렬로 실행
+  await Future.wait(initFutures);
+  
+  stopwatch.stop();
+  if (kDebugMode) {
+    print('🚀 App initialization completed in ${stopwatch.elapsedMilliseconds}ms');
   }
 
   runApp(const BalletShopApp());
