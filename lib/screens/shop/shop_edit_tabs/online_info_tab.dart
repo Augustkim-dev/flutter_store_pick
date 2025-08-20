@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../models/shop.dart';
+import '../../../models/shipping_region.dart';
 import '../../../theme/app_colors.dart';
+import '../../../widgets/shipping_region_widget.dart';
 
 class OnlineInfoTab extends StatefulWidget {
   final Shop shop;
@@ -50,6 +52,8 @@ class OnlineInfoTab extends StatefulWidget {
 }
 
 class _OnlineInfoTabState extends State<OnlineInfoTab> {
+  List<ShippingRegion> _shippingRegions = [];
+  
   static const List<String> _availablePaymentMethods = [
     '신용카드',
     '체크카드',
@@ -192,6 +196,20 @@ class _OnlineInfoTabState extends State<OnlineInfoTab> {
               prefixIcon: Icon(Icons.info_outline),
             ),
             maxLines: 3,
+          ),
+          const SizedBox(height: 24),
+
+          // 지역별 배송비
+          _buildSectionTitle('지역별 배송비'),
+          const SizedBox(height: 12),
+          ShippingRegionWidget(
+            shopId: widget.shop.id,
+            regions: _shippingRegions,
+            onRegionsChanged: (regions) {
+              setState(() {
+                _shippingRegions = regions;
+              });
+            },
           ),
           const SizedBox(height: 24),
 
