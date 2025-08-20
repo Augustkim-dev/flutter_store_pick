@@ -55,8 +55,27 @@ class _ShopCardState extends State<ShopCard> {
     }
   }
 
+  // 영업 상태 확인
+  bool _isOpenNow() {
+    // TODO: 실제 영업시간 데이터로 판단
+    final now = DateTime.now();
+    final hour = now.hour;
+    final weekday = now.weekday;
+    
+    // 기본 영업시간: 평일 10-20, 주말 10-18
+    if (weekday >= 1 && weekday <= 5) {
+      return hour >= 10 && hour < 20;
+    } else {
+      return hour >= 10 && hour < 18;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isOpen = widget.shop.isOffline || widget.shop.shopType == ShopType.hybrid 
+        ? _isOpenNow() 
+        : true;
+
     return GestureDetector(
       onTap: widget.onTap,
       child: Container(
@@ -100,35 +119,69 @@ class _ShopCardState extends State<ShopCard> {
                     },
                   ),
                 ),
-                // 상점 유형 배지
+                // 상점 유형 배지 & 영업 상태
                 Positioned(
                   top: 12,
                   left: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _getShopTypeColor(widget.shop.shopType),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _getShopTypeIcon(widget.shop.shopType),
-                          size: 14,
-                          color: AppColors.white,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: _getShopTypeColor(widget.shop.shopType),
+                          borderRadius: BorderRadius.circular(20),
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          widget.shop.shopType.displayName,
-                          style: const TextStyle(
-                            color: AppColors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              _getShopTypeIcon(widget.shop.shopType),
+                              size: 14,
+                              color: AppColors.white,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              widget.shop.shopType.displayName,
+                              style: const TextStyle(
+                                color: AppColors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      if (widget.shop.isOffline || widget.shop.shopType == ShopType.hybrid) ...[
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: isOpen ? Colors.green : Colors.red,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                isOpen ? Icons.access_time : Icons.block,
+                                size: 12,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                isOpen ? '영업중' : '휴무',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
-                    ),
+                    ],
                   ),
                 ),
                 // 인증 배지
@@ -209,7 +262,7 @@ class _ShopCardState extends State<ShopCard> {
                   ),
                   const SizedBox(height: 12),
                   
-                  // 위치 또는 배송 정보
+                  // 위치 또는 배송 정보 & 편의시설 아이콘
                   Row(
                     children: [
                       Icon(
@@ -230,6 +283,43 @@ class _ShopCardState extends State<ShopCard> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      // 편의시설 아이콘
+                      if (widget.shop.parkingAvailable == true)
+                        const Padding(
+                          padding: EdgeInsets.only(left: 8),
+                          child: Icon(
+                            Icons.local_parking,
+                            size: 16,
+                            color: AppColors.success,
+                          ),
+                        ),
+                      if (widget.shop.fittingAvailable == true)
+                        const Padding(
+                          padding: EdgeInsets.only(left: 4),
+                          child: Icon(
+                            Icons.checkroom,
+                            size: 16,
+                            color: AppColors.primaryPink,
+                          ),
+                        ),
+                      if (widget.shop.sameDayDelivery == true)
+                        const Padding(
+                          padding: EdgeInsets.only(left: 4),
+                          child: Icon(
+                            Icons.rocket_launch,
+                            size: 16,
+                            color: AppColors.warning,
+                          ),
+                        ),
+                      if (widget.shop.pickupService == true)
+                        const Padding(
+                          padding: EdgeInsets.only(left: 4),
+                          child: Icon(
+                            Icons.shopping_bag,
+                            size: 16,
+                            color: AppColors.info,
+                          ),
+                        ),
                     ],
                   ),
                   const SizedBox(height: 8),

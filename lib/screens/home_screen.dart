@@ -6,6 +6,7 @@ import '../services/shop_service.dart';
 import '../services/review_service.dart';
 import '../models/review.dart';
 import 'shop_detail_screen.dart';
+import 'shop_detail_screen_v2.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,9 +20,16 @@ class _HomeScreenState extends State<HomeScreen> {
   final ReviewService _reviewService = ReviewService();
   ShopType? selectedFilter;
   List<Shop> filteredShops = [];
+  List<Shop> _allShops = [];
   Map<String, ShopRating> shopRatings = {};
   bool isLoading = true;
   String? errorMessage;
+  
+  // 추가 필터 옵션
+  Set<String> selectedBrands = {};
+  Set<String> selectedCategories = {};
+  Set<String> selectedFacilities = {};
+  bool onlyVerified = false;
 
   @override
   void initState() {
@@ -37,9 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      final shops = selectedFilter == null
-          ? await _shopService.getAllShops()
-          : await _shopService.getShopsByType(selectedFilter!);
+      final shops = await _shopService.getAllShops();
       
       // 상점 목록을 가져온 후 평점 정보도 가져오기
       if (shops.isNotEmpty) {
@@ -51,7 +57,8 @@ class _HomeScreenState extends State<HomeScreen> {
       }
       
       setState(() {
-        filteredShops = shops;
+        _allShops = shops;
+        _applyFilters();
         isLoading = false;
       });
     } catch (e) {
@@ -62,11 +69,66 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void _applyFilters() {
+    var filtered = List<Shop>.from(_allShops);
+    
+    // 상점 유형 필터
+    if (selectedFilter != null) {
+      filtered = filtered.where((shop) => shop.shopType == selectedFilter).toList();
+    }
+    
+    // 브랜드 필터
+    if (selectedBrands.isNotEmpty) {
+      filtered = filtered.where((shop) => 
+        shop.mainBrands.any((brand) => selectedBrands.contains(brand))
+      ).toList();
+    }
+    
+    // 카테고리 필터
+    if (selectedCategories.isNotEmpty) {
+      filtered = filtered.where((shop) => 
+        shop.categories.any((cat) => selectedCategories.contains(cat))
+      ).toList();
+    }
+    
+    // 편의시설 필터
+    if (selectedFacilities.isNotEmpty) {
+      filtered = filtered.where((shop) {
+        for (var facility in selectedFacilities) {
+          switch (facility) {
+            case '주차가능':
+              if (shop.parkingAvailable != true) return false;
+              break;
+            case '시착가능':
+              if (shop.fittingAvailable != true) return false;
+              break;
+            case '당일배송':
+              if (shop.sameDayDelivery != true) return false;
+              break;
+            case '픽업서비스':
+              if (shop.pickupService != true) return false;
+              break;
+          }
+        }
+        return true;
+      }).toList();
+    }
+    
+    // 인증 상점 필터
+    if (onlyVerified) {
+      filtered = filtered.where((shop) => shop.isVerified).toList();
+    }
+    
+    setState(() {
+      filteredShops = filtered;
+    });
+  }
+
   void _filterShops(ShopType? type) {
     setState(() {
       selectedFilter = type;
+      _applyFilters();
     });
-    _loadShops();
   }
 
   @override
@@ -169,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   onTap: () async {
                                     await Navigator.of(context).push(
                                       MaterialPageRoute(
-                                        builder: (context) => ShopDetailScreen(shop: shop),
+                                        builder: (context) => ShopDetailScreenV2(shopId: shop.id),
                                       ),
                                     );
                                     // 상세 화면에서 돌아온 후 평점 다시 로드
@@ -188,50 +250,198 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showFilterBottomSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '상점 필터',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 20),
-              ListTile(
-                leading: const Icon(Icons.all_inclusive),
-                title: const Text('전체 보기'),
-                onTap: () {
-                  _filterShops(null);
-                  Navigator.pop(context);
-                },
-                selected: selectedFilter == null,
-              ),
-              ListTile(
-                leading: const Icon(Icons.store),
-                title: const Text('오프라인 매장'),
-                onTap: () {
-                  _filterShops(ShopType.offline);
-                  Navigator.pop(context);
-                },
-                selected: selectedFilter == ShopType.offline,
-              ),
-              ListTile(
-                leading: const Icon(Icons.shopping_cart),
-                title: const Text('온라인 쇼핑몰'),
-                onTap: () {
-                  _filterShops(ShopType.online);
-                  Navigator.pop(context);
-                },
-                selected: selectedFilter == ShopType.online,
-              ),
-            ],
-          ),
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return DraggableScrollableSheet(
+              initialChildSize: 0.7,
+              minChildSize: 0.5,
+              maxChildSize: 0.9,
+              expand: false,
+              builder: (context, scrollController) {
+                return Container(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '고급 필터',
+                            style: Theme.of(context).textTheme.headlineSmall,
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              setState(() {
+                                selectedFilter = null;
+                                selectedBrands.clear();
+                                selectedCategories.clear();
+                                selectedFacilities.clear();
+                                onlyVerified = false;
+                                _applyFilters();
+                              });
+                              Navigator.pop(context);
+                            },
+                            child: const Text('초기화'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Expanded(
+                        child: ListView(
+                          controller: scrollController,
+                          children: [
+                            // 상점 유형
+                            const Text('상점 유형', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8,
+                              children: [
+                                ChoiceChip(
+                                  label: const Text('전체'),
+                                  selected: selectedFilter == null,
+                                  onSelected: (_) {
+                                    setModalState(() {
+                                      selectedFilter = null;
+                                    });
+                                  },
+                                ),
+                                ChoiceChip(
+                                  label: const Text('오프라인'),
+                                  selected: selectedFilter == ShopType.offline,
+                                  onSelected: (_) {
+                                    setModalState(() {
+                                      selectedFilter = ShopType.offline;
+                                    });
+                                  },
+                                ),
+                                ChoiceChip(
+                                  label: const Text('온라인'),
+                                  selected: selectedFilter == ShopType.online,
+                                  onSelected: (_) {
+                                    setModalState(() {
+                                      selectedFilter = ShopType.online;
+                                    });
+                                  },
+                                ),
+                                ChoiceChip(
+                                  label: const Text('온/오프라인'),
+                                  selected: selectedFilter == ShopType.hybrid,
+                                  onSelected: (_) {
+                                    setModalState(() {
+                                      selectedFilter = ShopType.hybrid;
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            
+                            // 편의시설
+                            const Text('편의시설/서비스', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 8,
+                              children: [
+                                FilterChip(
+                                  label: const Text('주차가능'),
+                                  selected: selectedFacilities.contains('주차가능'),
+                                  onSelected: (selected) {
+                                    setModalState(() {
+                                      if (selected) {
+                                        selectedFacilities.add('주차가능');
+                                      } else {
+                                        selectedFacilities.remove('주차가능');
+                                      }
+                                    });
+                                  },
+                                ),
+                                FilterChip(
+                                  label: const Text('시착가능'),
+                                  selected: selectedFacilities.contains('시착가능'),
+                                  onSelected: (selected) {
+                                    setModalState(() {
+                                      if (selected) {
+                                        selectedFacilities.add('시착가능');
+                                      } else {
+                                        selectedFacilities.remove('시착가능');
+                                      }
+                                    });
+                                  },
+                                ),
+                                FilterChip(
+                                  label: const Text('당일배송'),
+                                  selected: selectedFacilities.contains('당일배송'),
+                                  onSelected: (selected) {
+                                    setModalState(() {
+                                      if (selected) {
+                                        selectedFacilities.add('당일배송');
+                                      } else {
+                                        selectedFacilities.remove('당일배송');
+                                      }
+                                    });
+                                  },
+                                ),
+                                FilterChip(
+                                  label: const Text('픽업서비스'),
+                                  selected: selectedFacilities.contains('픽업서비스'),
+                                  onSelected: (selected) {
+                                    setModalState(() {
+                                      if (selected) {
+                                        selectedFacilities.add('픽업서비스');
+                                      } else {
+                                        selectedFacilities.remove('픽업서비스');
+                                      }
+                                    });
+                                  },
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 20),
+                            
+                            // 기타 옵션
+                            const Text('기타 옵션', style: TextStyle(fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 8),
+                            SwitchListTile(
+                              title: const Text('인증된 상점만'),
+                              value: onlyVerified,
+                              onChanged: (value) {
+                                setModalState(() {
+                                  onlyVerified = value;
+                                });
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _applyFilters();
+                            });
+                            Navigator.pop(context);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryPink,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                          ),
+                          child: Text('필터 적용 (${filteredShops.length}개 상점)'),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          },
         );
       },
     );
