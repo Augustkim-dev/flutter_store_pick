@@ -66,7 +66,7 @@ class _ShopDetailScreenState extends State<ShopDetailScreen> {
         _isLoadingReviews = false;
       });
     } catch (e) {
-      print('Error loading reviews: $e');
+      // Error loading reviews: $e
       setState(() {
         _isLoadingReviews = false;
       });

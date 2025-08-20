@@ -33,10 +33,6 @@ class ImageUploadService {
           .uploadBinary(
             filePath,
             imageBytes,
-            fileOptions: const FileOptions(
-              cacheControl: '3600',
-              upsert: true,
-            ),
           );
       
       if (response.isNotEmpty) {
@@ -81,10 +77,6 @@ class ImageUploadService {
             .uploadBinary(
               filePath,
               imageBytes,
-              fileOptions: const FileOptions(
-                cacheControl: '3600',
-                upsert: false,
-              ),
             );
         
         if (response.isNotEmpty) {

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import '../models/shop.dart';
 import '../models/review.dart';
 import '../services/shop_service.dart';
@@ -18,9 +17,9 @@ class ShopDetailScreenV2 extends StatefulWidget {
   final String shopId;
 
   const ShopDetailScreenV2({
-    Key? key,
+    super.key,
     required this.shopId,
-  }) : super(key: key);
+  });
 
   @override
   State<ShopDetailScreenV2> createState() => _ShopDetailScreenV2State();
@@ -31,7 +30,6 @@ class _ShopDetailScreenV2State extends State<ShopDetailScreenV2>
   late TabController _tabController;
   final ShopService _shopService = ShopService();
   final ReviewService _reviewService = ReviewService();
-  final AnnouncementService _announcementService = AnnouncementService();
   
   Shop? _shop;
   ShopRating? _shopRating;
@@ -262,10 +260,10 @@ class _ShopDetailScreenV2State extends State<ShopDetailScreenV2>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.primaryPink.withOpacity(0.1),
+        color: AppColors.primaryPink.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.primaryPink.withOpacity(0.3),
+          color: AppColors.primaryPink.withValues(alpha: 0.3),
         ),
       ),
       child: Row(
@@ -413,12 +411,12 @@ class _ShopDetailScreenV2State extends State<ShopDetailScreenV2>
             // 리뷰 탭
             ReviewListWidget(
               shopId: _shop!.id,
-              shopOwnerId: _shop!.ownerId,
             ),
             
             // 공지사항 탭
             AnnouncementListWidget(
               shopId: _shop!.id,
+              shopOwnerId: _shop!.ownerId ?? '',
               isOwner: false, // TODO: 실제 소유자 확인
             ),
           ],

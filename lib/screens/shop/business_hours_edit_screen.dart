@@ -6,8 +6,7 @@ import '../../theme/app_colors.dart';
 class BusinessHoursEditScreen extends StatefulWidget {
   final String shopId;
 
-  const BusinessHoursEditScreen({Key? key, required this.shopId})
-      : super(key: key);
+  const BusinessHoursEditScreen({super.key, required this.shopId});
 
   @override
   State<BusinessHoursEditScreen> createState() =>

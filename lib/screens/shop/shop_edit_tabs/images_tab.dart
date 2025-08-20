@@ -13,13 +13,13 @@ class ImagesTab extends StatefulWidget {
   final ValueChanged<List<String>> onGalleryImagesChanged;
 
   const ImagesTab({
-    Key? key,
+    super.key,
     required this.shop,
     required this.mainImageUrl,
     required this.galleryImageUrls,
     required this.onMainImageChanged,
     required this.onGalleryImagesChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<ImagesTab> createState() => _ImagesTabState();
@@ -29,7 +29,7 @@ class _ImagesTabState extends State<ImagesTab> {
   final ImagePicker _picker = ImagePicker();
   final ImageUploadService _imageUploadService = ImageUploadService();
   File? _mainImageFile;
-  List<File> _galleryImageFiles = [];
+  final List<File> _galleryImageFiles = [];
   bool _isUploading = false;
   double _uploadProgress = 0;
 
@@ -229,7 +229,7 @@ class _ImagesTabState extends State<ImagesTab> {
                     _buildImageWidget(widget.mainImageUrl, _mainImageFile),
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.3),
+                        color: Colors.black.withValues(alpha: 0.3),
                       ),
                       child: const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -361,7 +361,7 @@ class _ImagesTabState extends State<ImagesTab> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.7),
+                          color: Colors.black.withValues(alpha: 0.7),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(

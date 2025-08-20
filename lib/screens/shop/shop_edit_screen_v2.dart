@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import '../../models/shop.dart';
 import '../../models/brand.dart';
 import '../../services/shop_service.dart';
@@ -15,7 +14,7 @@ import 'shop_edit_tabs/images_tab.dart';
 class ShopEditScreenV2 extends StatefulWidget {
   final Shop shop;
 
-  const ShopEditScreenV2({Key? key, required this.shop}) : super(key: key);
+  const ShopEditScreenV2({super.key, required this.shop});
 
   @override
   State<ShopEditScreenV2> createState() => _ShopEditScreenV2State();
@@ -26,8 +25,6 @@ class _ShopEditScreenV2State extends State<ShopEditScreenV2>
   late TabController _tabController;
   final _formKey = GlobalKey<FormState>();
   final ShopService _shopService = ShopService();
-  final CategoryService _categoryService = CategoryService();
-  final ShippingService _shippingService = ShippingService();
   
   // 기본 정보 컨트롤러
   late TextEditingController _nameController;

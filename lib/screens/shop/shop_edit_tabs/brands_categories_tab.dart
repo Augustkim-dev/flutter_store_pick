@@ -13,13 +13,13 @@ class BrandsCategoriesTab extends StatefulWidget {
   final ValueChanged<List<String>> onCategoriesChanged;
 
   const BrandsCategoriesTab({
-    Key? key,
+    super.key,
     required this.shop,
     required this.selectedBrands,
     required this.selectedCategories,
     required this.onBrandsChanged,
     required this.onCategoriesChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<BrandsCategoriesTab> createState() => _BrandsCategoriesTabState();
@@ -194,7 +194,7 @@ class _BrandsCategoriesTabState extends State<BrandsCategoriesTab> {
                   label: Text(brand.name),
                   deleteIcon: const Icon(Icons.close, size: 18),
                   onDeleted: () => _removeBrand(brand),
-                  backgroundColor: AppColors.secondaryPurple.withOpacity(0.1),
+                  backgroundColor: AppColors.secondaryPurple.withValues(alpha: 0.1),
                   deleteIconColor: AppColors.secondaryPurple,
                 );
               }).toList(),
@@ -243,7 +243,7 @@ class _BrandsCategoriesTabState extends State<BrandsCategoriesTab> {
                         label: Text(category),
                         selected: isSelected,
                         onSelected: (_) => _toggleCategory(category),
-                        selectedColor: AppColors.primaryPink.withOpacity(0.2),
+                        selectedColor: AppColors.primaryPink.withValues(alpha: 0.2),
                         checkmarkColor: AppColors.primaryPink,
                         backgroundColor: Colors.grey.shade100,
                       );

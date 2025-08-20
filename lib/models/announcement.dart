@@ -5,6 +5,7 @@ class Announcement {
   final String content;
   final bool isPinned;
   final bool isActive;
+  final bool isImportant;
   final DateTime? validFrom;
   final DateTime? validUntil;
   final DateTime createdAt;
@@ -21,6 +22,7 @@ class Announcement {
     required this.content,
     this.isPinned = false,
     this.isActive = true,
+    this.isImportant = false,
     this.validFrom,
     this.validUntil,
     required this.createdAt,
@@ -37,6 +39,7 @@ class Announcement {
       content: json['content'] as String,
       isPinned: json['is_pinned'] as bool? ?? false,
       isActive: json['is_active'] as bool? ?? true,
+      isImportant: json['is_important'] as bool? ?? json['is_pinned'] as bool? ?? false,
       validFrom: json['valid_from'] != null 
         ? DateTime.parse(json['valid_from'] as String)
         : null,
@@ -58,6 +61,7 @@ class Announcement {
       'content': content,
       'is_pinned': isPinned,
       'is_active': isActive,
+      'is_important': isImportant,
       'valid_from': validFrom?.toIso8601String(),
       'valid_until': validUntil?.toIso8601String(),
       'created_at': createdAt.toIso8601String(),

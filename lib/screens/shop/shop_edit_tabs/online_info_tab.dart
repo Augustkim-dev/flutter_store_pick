@@ -26,7 +26,7 @@ class OnlineInfoTab extends StatefulWidget {
   final ValueChanged<List<String>> onPaymentMethodsChanged;
 
   const OnlineInfoTab({
-    Key? key,
+    super.key,
     required this.shop,
     required this.websiteController,
     required this.shippingFeeController,
@@ -45,7 +45,7 @@ class OnlineInfoTab extends StatefulWidget {
     required this.onMobileWebChanged,
     required this.onSameDayChanged,
     required this.onPaymentMethodsChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<OnlineInfoTab> createState() => _OnlineInfoTabState();
@@ -236,7 +236,7 @@ class _OnlineInfoTabState extends State<OnlineInfoTab> {
                       }
                       widget.onPaymentMethodsChanged(newMethods);
                     },
-                    selectedColor: AppColors.primaryPink.withOpacity(0.2),
+                    selectedColor: AppColors.primaryPink.withValues(alpha: 0.2),
                     checkmarkColor: AppColors.primaryPink,
                   );
                 }).toList(),

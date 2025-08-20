@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../../services/favorite_service.dart';
-import '../../services/shop_service.dart';
 import '../../models/user_profile.dart';
 import '../../models/shop.dart';
 import '../../theme/app_colors.dart';
@@ -23,7 +22,6 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProviderStateMixin {
   final _authService = AuthService();
   final _favoriteService = FavoriteService();
-  final _shopService = ShopService();
   
   late TabController _tabController;
   UserProfile? _userProfile;
@@ -64,7 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading user data: $e');
+      // Error loading user data: $e
       setState(() {
         _isLoading = false;
       });
@@ -408,13 +406,12 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               onDismissed: (direction) async {
                 await _favoriteService.removeFavorite(shop.id);
                 await _loadUserData();
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('${shop.name}이(가) 즐겨찾기에서 삭제되었습니다'),
-                    ),
-                  );
-                }
+                if (!mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('${shop.name}이(가) 즐겨찾기에서 삭제되었습니다'),
+                  ),
+                );
               },
               child: ShopCard(
                 shop: shop,
@@ -442,7 +439,6 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
       case UserType.shopOwner:
         return Colors.blue;
       case UserType.general:
-      default:
         return AppColors.primaryPink;
     }
   }

@@ -9,10 +9,10 @@ class AnnouncementEditScreen extends StatefulWidget {
   final Announcement? announcement;
 
   const AnnouncementEditScreen({
-    Key? key,
+    super.key,
     required this.shopId,
     this.announcement,
-  }) : super(key: key);
+  });
 
   @override
   State<AnnouncementEditScreen> createState() => _AnnouncementEditScreenState();

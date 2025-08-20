@@ -95,6 +95,7 @@ class AppConfig {
   /// 디버그 메시지 출력
   static void debugPrint(String message) {
     if (isDebugMode) {
+      // ignore: avoid_print
       print('[${DateTime.now().toIso8601String()}] $message');
     }
   }
