@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../../models/shop.dart';
 import '../../models/review.dart';
 import '../../services/shop_service.dart';
 import '../../services/review_service.dart';
+import '../../services/review_reply_service.dart';
 import '../../theme/app_colors.dart';
 import '../../widgets/review_item.dart';
+import '../../widgets/review_reply_dialog.dart';
 import 'business_hours_edit_screen.dart';
+import 'announcement_list_screen.dart';
 
 class ShopDashboardScreen extends StatefulWidget {
   final Shop shop;
@@ -21,6 +25,7 @@ class _ShopDashboardScreenState extends State<ShopDashboardScreen>
   late TabController _tabController;
   final ShopService _shopService = ShopService();
   final ReviewService _reviewService = ReviewService();
+  final ReviewReplyService _replyService = ReviewReplyService();
 
   Map<String, dynamic> _shopStats = {};
   List<Review> _reviews = [];
@@ -48,8 +53,8 @@ class _ShopDashboardScreenState extends State<ShopDashboardScreen>
       // 상점 통계 가져오기
       final stats = await _shopService.getShopStats(widget.shop.id);
       
-      // 리뷰 목록 가져오기
-      final reviews = await _reviewService.getShopReviews(widget.shop.id);
+      // 리뷰 목록 가져오기 (답글 포함)
+      final reviews = await _replyService.getShopReviewsWithReplies(widget.shop.id);
 
       setState(() {
         _shopStats = stats;
@@ -101,6 +106,9 @@ class _ShopDashboardScreenState extends State<ShopDashboardScreen>
     final reviewCount = _shopStats['review_count'] ?? 0;
     final averageRating = (_shopStats['average_rating'] ?? 0.0).toDouble();
     final favoriteCount = _shopStats['favorite_count'] ?? 0;
+    final weeklyReviews = _shopStats['weekly_reviews'] ?? 0;
+    final monthlyReviews = _shopStats['monthly_reviews'] ?? 0;
+    final unansweredReviews = _shopStats['unanswered_reviews_count'] ?? 0;
 
     return RefreshIndicator(
       onRefresh: _loadData,
@@ -137,7 +145,7 @@ class _ShopDashboardScreenState extends State<ShopDashboardScreen>
                     _buildStatCard(
                       Icons.rate_review,
                       reviewCount.toString(),
-                      '리뷰 수',
+                      '전체 리뷰',
                       Colors.blue,
                     ),
                     _buildStatCard(
@@ -148,13 +156,37 @@ class _ShopDashboardScreenState extends State<ShopDashboardScreen>
                     ),
                   ],
                 ),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildStatCard(
+                      Icons.trending_up,
+                      weeklyReviews.toString(),
+                      '주간 리뷰',
+                      Colors.green,
+                    ),
+                    _buildStatCard(
+                      Icons.calendar_month,
+                      monthlyReviews.toString(),
+                      '월간 리뷰',
+                      Colors.purple,
+                    ),
+                    _buildStatCard(
+                      Icons.reply_outlined,
+                      unansweredReviews.toString(),
+                      '미답변',
+                      Colors.orange,
+                    ),
+                  ],
+                ),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 16),
           
-          // 평점 분포 카드
+          // 평점 분포 차트
           Card(
             elevation: 4,
             shape: RoundedRectangleBorder(
@@ -172,39 +204,160 @@ class _ShopDashboardScreenState extends State<ShopDashboardScreen>
                   ),
                 ),
                 const SizedBox(height: 20),
-                ...List.generate(5, (index) {
-                  final rating = 5 - index;
-                  final count = _reviews.where((r) => r.rating == rating).length;
-                  final percentage = reviewCount > 0 ? (count / reviewCount) * 100 : 0;
-                  
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      children: [
-                        Text('$rating점'),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: LinearProgressIndicator(
-                            value: percentage / 100,
-                            backgroundColor: Colors.grey.shade200,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.amber.shade600,
+                SizedBox(
+                  height: 200,
+                  child: BarChart(
+                    BarChartData(
+                      alignment: BarChartAlignment.spaceAround,
+                      maxY: reviewCount.toDouble() > 0 ? reviewCount.toDouble() : 10,
+                      barTouchData: BarTouchData(
+                        enabled: true,
+                        touchTooltipData: BarTouchTooltipData(
+                          tooltipPadding: const EdgeInsets.all(8),
+                          tooltipMargin: 8,
+                          getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                            return BarTooltipItem(
+                              '${5 - groupIndex}점\n',
+                              const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: '${rod.toY.toInt()}개',
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                      titlesData: FlTitlesData(
+                        show: true,
+                        bottomTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            getTitlesWidget: (value, meta) {
+                              const ratings = ['5점', '4점', '3점', '2점', '1점'];
+                              return Text(
+                                ratings[value.toInt()],
+                                style: const TextStyle(fontSize: 12),
+                              );
+                            },
+                          ),
+                        ),
+                        leftTitles: AxisTitles(
+                          sideTitles: SideTitles(
+                            showTitles: true,
+                            reservedSize: 30,
+                            getTitlesWidget: (value, meta) {
+                              if (value == value.toInt()) {
+                                return Text(
+                                  value.toInt().toString(),
+                                  style: const TextStyle(fontSize: 10),
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            },
+                          ),
+                        ),
+                        topTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                        rightTitles: const AxisTitles(
+                          sideTitles: SideTitles(showTitles: false),
+                        ),
+                      ),
+                      borderData: FlBorderData(show: false),
+                      barGroups: List.generate(5, (index) {
+                        final rating = 5 - index;
+                        final count = _reviews.where((r) => r.rating == rating).length;
+                        return BarChartGroupData(
+                          x: index,
+                          barRods: [
+                            BarChartRodData(
+                              toY: count.toDouble(),
+                              gradient: LinearGradient(
+                                colors: [
+                                  AppColors.primaryPink,
+                                  AppColors.primaryPink.withAlpha(179),
+                                ],
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                              ),
+                              width: 40,
+                              borderRadius: const BorderRadius.only(
+                                topLeft: Radius.circular(8),
+                                topRight: Radius.circular(8),
+                              ),
                             ),
-                            minHeight: 8,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        SizedBox(
-                          width: 40,
-                          child: Text(
-                            '$count',
-                            textAlign: TextAlign.right,
-                          ),
-                        ),
-                      ],
+                          ],
+                        );
+                      }),
                     ),
-                  );
-                }),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // 평점 요약
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Column(
+                        children: [
+                          const Text(
+                            '평균 평점',
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              const Icon(Icons.star, color: Colors.amber, size: 20),
+                              const SizedBox(width: 4),
+                              Text(
+                                averageRating.toStringAsFixed(1),
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Container(width: 1, height: 40, color: Colors.grey.shade300),
+                      Column(
+                        children: [
+                          const Text(
+                            '답글률',
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            reviewCount > 0 
+                              ? '${((reviewCount - unansweredReviews) / reviewCount * 100).toStringAsFixed(0)}%'
+                              : '0%',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: reviewCount > 0 && ((reviewCount - unansweredReviews) / reviewCount) >= 0.8
+                                ? Colors.green
+                                : Colors.orange,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
                 ],
               ),
             ),
@@ -283,9 +436,14 @@ class _ShopDashboardScreenState extends State<ShopDashboardScreen>
         padding: const EdgeInsets.all(16),
         itemCount: _reviews.length,
         itemBuilder: (context, index) {
+          final review = _reviews[index];
           return Padding(
             padding: const EdgeInsets.only(bottom: 16),
-            child: ReviewItem(review: _reviews[index]),
+            child: ReviewItem(
+              review: review,
+              isShopOwnerView: true,
+              onReply: review.hasReply ? () => _showReplyDialog(review) : () => _showReplyDialog(review),
+            ),
           );
         },
       ),
@@ -319,6 +477,24 @@ class _ShopDashboardScreenState extends State<ShopDashboardScreen>
                         );
                       }
                     : null,
+              ),
+              const Divider(height: 1),
+              ListTile(
+                leading: const Icon(Icons.announcement),
+                title: const Text('공지사항 관리'),
+                subtitle: const Text('상점 공지사항을 관리하세요'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => AnnouncementListScreen(
+                        shopId: widget.shop.id,
+                        shopName: widget.shop.name,
+                      ),
+                    ),
+                  );
+                },
               ),
               const Divider(height: 1),
               ListTile(
@@ -434,6 +610,20 @@ class _ShopDashboardScreenState extends State<ShopDashboardScreen>
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showReplyDialog(Review review) {
+    showDialog(
+      context: context,
+      builder: (context) => ReviewReplyDialog(
+        review: review,
+        shopId: widget.shop.id,
+        onReplySaved: () {
+          // 답글 저장 후 데이터 새로고침
+          _loadData();
+        },
       ),
     );
   }

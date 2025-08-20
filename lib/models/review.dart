@@ -10,6 +10,12 @@ class Review {
   // 조인된 사용자 정보
   final String? userName;
   final String? userAvatar;
+  
+  // 리뷰 답글 정보
+  final String? replyId;
+  final String? replyContent;
+  final DateTime? replyCreatedAt;
+  final DateTime? replyUpdatedAt;
 
   Review({
     required this.id,
@@ -21,6 +27,10 @@ class Review {
     required this.updatedAt,
     this.userName,
     this.userAvatar,
+    this.replyId,
+    this.replyContent,
+    this.replyCreatedAt,
+    this.replyUpdatedAt,
   });
 
   factory Review.fromJson(Map<String, dynamic> json) {
@@ -32,8 +42,16 @@ class Review {
       comment: json['comment'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
-      userName: json['user_name'],
-      userAvatar: json['user_avatar'],
+      userName: json['user_name'] ?? json['username'],
+      userAvatar: json['user_avatar'] ?? json['avatar_url'],
+      replyId: json['reply_id'],
+      replyContent: json['reply_content'],
+      replyCreatedAt: json['reply_created_at'] != null 
+        ? DateTime.parse(json['reply_created_at'])
+        : null,
+      replyUpdatedAt: json['reply_updated_at'] != null
+        ? DateTime.parse(json['reply_updated_at'])
+        : null,
     );
   }
 
@@ -59,6 +77,10 @@ class Review {
     DateTime? updatedAt,
     String? userName,
     String? userAvatar,
+    String? replyId,
+    String? replyContent,
+    DateTime? replyCreatedAt,
+    DateTime? replyUpdatedAt,
   }) {
     return Review(
       id: id ?? this.id,
@@ -70,8 +92,15 @@ class Review {
       updatedAt: updatedAt ?? this.updatedAt,
       userName: userName ?? this.userName,
       userAvatar: userAvatar ?? this.userAvatar,
+      replyId: replyId ?? this.replyId,
+      replyContent: replyContent ?? this.replyContent,
+      replyCreatedAt: replyCreatedAt ?? this.replyCreatedAt,
+      replyUpdatedAt: replyUpdatedAt ?? this.replyUpdatedAt,
     );
   }
+  
+  // Check if review has a reply
+  bool get hasReply => replyId != null && replyContent != null;
 }
 
 class ShopRating {
