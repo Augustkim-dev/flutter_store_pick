@@ -5,7 +5,10 @@
       "Bash(cat:*)",
       "Bash(flutter analyze:*)",
       "Bash(flutter pub:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)"
     ],
     "deny": [],
     "ask": []

@@ -4,7 +4,7 @@ import '../../models/user_profile.dart';
 import '../../services/auth_service.dart';
 import '../../services/shop_service.dart';
 import '../../theme/app_colors.dart';
-import 'shop_edit_screen.dart';
+import 'shop_edit_screen_v2.dart';
 import 'shop_dashboard_screen.dart';
 
 class ShopManagementScreen extends StatefulWidget {
@@ -330,7 +330,7 @@ class _ShopManagementScreenState extends State<ShopManagementScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => ShopEditScreen(shop: shop),
+        builder: (context) => ShopEditScreenV2(shop: shop),
       ),
     ).then((_) => _loadData());
   }
