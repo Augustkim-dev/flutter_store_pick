@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../models/shop.dart';
 import '../widgets/shop_card.dart';
+import '../widgets/skeleton_loader.dart';
+import '../widgets/error_widget_custom.dart';
 import '../services/shop_service.dart';
 import '../services/review_service.dart';
 import '../models/review.dart';
-import 'shop_detail_screen.dart';
 import 'shop_detail_screen_v2.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -193,29 +194,40 @@ class _HomeScreenState extends State<HomeScreen> {
           // 상점 리스트
           Expanded(
             child: isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(),
+                ? ListView.builder(
+                    itemCount: 5, // 스켈레톤 개수
+                    itemBuilder: (context, index) {
+                      return const ShopCardSkeleton();
+                    },
                   )
                 : errorMessage != null
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              errorMessage!,
-                              style: Theme.of(context).textTheme.bodyLarge,
-                            ),
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: _loadShops,
-                              child: const Text('다시 시도'),
-                            ),
-                          ],
-                        ),
+                    ? CustomErrorWidget(
+                        message: errorMessage,
+                        errorType: ErrorType.network,
+                        onRetry: _loadShops,
                       )
                     : filteredShops.isEmpty
-                        ? const Center(
-                            child: Text('표시할 상점이 없습니다.'),
+                        ? EmptyStateWidget(
+                            title: '상점이 없습니다',
+                            message: _allShops.isEmpty 
+                                ? '등록된 상점이 없습니다'
+                                : '필터 조건에 맞는 상점이 없습니다',
+                            icon: Icons.store_outlined,
+                            action: _allShops.isNotEmpty
+                                ? ElevatedButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        selectedFilter = null;
+                                        selectedBrands.clear();
+                                        selectedCategories.clear();
+                                        selectedFacilities.clear();
+                                        onlyVerified = false;
+                                        _applyFilters();
+                                      });
+                                    },
+                                    child: const Text('필터 초기화'),
+                                  )
+                                : null,
                           )
                         : RefreshIndicator(
                             onRefresh: _loadShops,

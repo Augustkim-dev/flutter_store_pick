@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_colors.dart';
 import 'signup_screen.dart';
-import '../main_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -42,8 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       
       // 프로필 확인 및 생성
-      final profile = await _authService.getCurrentUserProfile();
-      print('Profile after login: $profile');
+      await _authService.getCurrentUserProfile();
 
       if (mounted) {
         // 단순히 pop만 수행 (MainScreen은 이미 뒤에 있음)
@@ -276,7 +274,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 // 회원가입 버튼
                 OutlinedButton(
                   onPressed: () async {
-                    final result = await Navigator.of(context).push(
+                    await Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => const SignupScreen(),
                       ),

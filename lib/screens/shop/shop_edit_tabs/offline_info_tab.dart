@@ -23,7 +23,7 @@ class OfflineInfoTab extends StatefulWidget {
   final ValueChanged<bool> onKidsChanged;
 
   const OfflineInfoTab({
-    Key? key,
+    super.key,
     required this.shop,
     required this.addressController,
     required this.detailedLocationController,
@@ -41,7 +41,7 @@ class OfflineInfoTab extends StatefulWidget {
     required this.onFittingChanged,
     required this.onWheelchairChanged,
     required this.onKidsChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<OfflineInfoTab> createState() => _OfflineInfoTabState();

@@ -9,10 +9,10 @@ class AnnouncementListScreen extends StatefulWidget {
   final String shopName;
 
   const AnnouncementListScreen({
-    Key? key,
+    super.key,
     required this.shopId,
     required this.shopName,
-  }) : super(key: key);
+  });
 
   @override
   State<AnnouncementListScreen> createState() => _AnnouncementListScreenState();

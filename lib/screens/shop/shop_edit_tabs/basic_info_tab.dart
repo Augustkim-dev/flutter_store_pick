@@ -19,7 +19,7 @@ class BasicInfoTab extends StatefulWidget {
   final ValueChanged<bool> onOnlineToOfflineChanged;
 
   const BasicInfoTab({
-    Key? key,
+    super.key,
     required this.shop,
     required this.nameController,
     required this.descriptionController,
@@ -33,7 +33,7 @@ class BasicInfoTab extends StatefulWidget {
     this.onlineToOffline = false,
     required this.onPickupServiceChanged,
     required this.onOnlineToOfflineChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<BasicInfoTab> createState() => _BasicInfoTabState();
@@ -243,10 +243,8 @@ class _BasicInfoTabState extends State<BasicInfoTab> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '• 온라인 고객과 오프라인 고객 모두 확보
-'
-                          '• 픽업 서비스로 배송비 절감 효과
-'
+                          '• 온라인 고객과 오프라인 고객 모두 확보\n'
+                          '• 픽업 서비스로 배송비 절감 효과\n'
                           '• 매장 방문 유도로 추가 매출 기회',
                           style: TextStyle(
                             fontSize: 12,
@@ -266,10 +264,10 @@ class _BasicInfoTabState extends State<BasicInfoTab> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: AppColors.primaryPink.withOpacity(0.1),
+              color: AppColors.primaryPink.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: AppColors.primaryPink.withOpacity(0.3),
+                color: AppColors.primaryPink.withValues(alpha: 0.3),
               ),
             ),
             child: Row(
@@ -299,7 +297,7 @@ class _BasicInfoTabState extends State<BasicInfoTab> {
                         '• 연락처 정보는 고객에게 표시됩니다',
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.primaryPink.withOpacity(0.8),
+                          color: AppColors.primaryPink.withValues(alpha: 0.8),
                         ),
                       ),
                     ],

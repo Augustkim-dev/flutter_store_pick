@@ -14,7 +14,7 @@ import 'announcement_list_screen.dart';
 class ShopDashboardScreen extends StatefulWidget {
   final Shop shop;
 
-  const ShopDashboardScreen({Key? key, required this.shop}) : super(key: key);
+  const ShopDashboardScreen({super.key, required this.shop});
 
   @override
   State<ShopDashboardScreen> createState() => _ShopDashboardScreenState();

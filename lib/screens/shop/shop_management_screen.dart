@@ -8,7 +8,7 @@ import 'shop_edit_screen_v2.dart';
 import 'shop_dashboard_screen.dart';
 
 class ShopManagementScreen extends StatefulWidget {
-  const ShopManagementScreen({Key? key}) : super(key: key);
+  const ShopManagementScreen({super.key});
 
   @override
   State<ShopManagementScreen> createState() => _ShopManagementScreenState();

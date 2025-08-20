@@ -23,8 +23,10 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
+        if (didPop) return;
         final isFirstRouteInCurrentTab =
             !await _navigatorKeys[_currentIndex].currentState!.maybePop();
         if (isFirstRouteInCurrentTab) {
@@ -32,10 +34,13 @@ class _MainScreenState extends State<MainScreen> {
             setState(() {
               _currentIndex = 0;
             });
-            return false;
+          } else {
+            // 앱 종료 처리
+            if (context.mounted) {
+              Navigator.of(context).pop();
+            }
           }
         }
-        return isFirstRouteInCurrentTab;
       },
       child: Scaffold(
         body: IndexedStack(

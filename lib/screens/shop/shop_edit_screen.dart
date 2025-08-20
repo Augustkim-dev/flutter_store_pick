@@ -6,7 +6,7 @@ import '../../theme/app_colors.dart';
 class ShopEditScreen extends StatefulWidget {
   final Shop shop;
 
-  const ShopEditScreen({Key? key, required this.shop}) : super(key: key);
+  const ShopEditScreen({super.key, required this.shop});
 
   @override
   State<ShopEditScreen> createState() => _ShopEditScreenState();
