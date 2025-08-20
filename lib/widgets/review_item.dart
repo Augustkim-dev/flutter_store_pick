@@ -5,13 +5,17 @@ import '../theme/app_colors.dart';
 class ReviewItem extends StatelessWidget {
   final Review review;
   final VoidCallback? onEdit;
+  final VoidCallback? onReply;
   final bool showShopName;
+  final bool isShopOwnerView;
 
   const ReviewItem({
     super.key,
     required this.review,
     this.onEdit,
+    this.onReply,
     this.showShopName = false,
+    this.isShopOwnerView = false,
   });
 
   @override
@@ -105,6 +109,92 @@ class ReviewItem extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 14,
                 height: 1.5,
+              ),
+            ),
+          ],
+          
+          // 사장님 답글
+          if (review.hasReply) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primaryPink.withAlpha(13),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: AppColors.primaryPink.withAlpha(51),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryPink,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          '사장님',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _formatDate(review.replyCreatedAt!),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.gray,
+                        ),
+                      ),
+                      if (review.replyUpdatedAt != null && 
+                          review.replyUpdatedAt!.isAfter(
+                            review.replyCreatedAt!.add(const Duration(seconds: 1))
+                          )) ...[
+                        const SizedBox(width: 4),
+                        const Text(
+                          '(수정됨)',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.gray,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    review.replyContent!,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      height: 1.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else if (isShopOwnerView && onReply != null) ...[
+            // 답글 작성 버튼 (상점 주인만 보임)
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: onReply,
+                icon: const Icon(Icons.reply, size: 16),
+                label: const Text('답글 작성'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.primaryPink,
+                  side: BorderSide(color: AppColors.primaryPink.withAlpha(102)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
               ),
             ),
           ],

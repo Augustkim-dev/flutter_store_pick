@@ -50,6 +50,12 @@ dependencies:
   # Version management utilities
   package_info_plus: ^8.1.3
   url_launcher: ^6.3.1
+  
+  # Phase 1 Shop Manager Features
+  fl_chart: ^0.68.0  # For statistics charts
+  image_picker: ^1.0.0  # For image upload
+  cached_network_image: ^3.3.0  # For image caching
+  table_calendar: ^3.0.9  # For date selection
 
 dev_dependencies:
   flutter_test:
