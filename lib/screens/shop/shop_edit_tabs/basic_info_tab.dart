@@ -13,6 +13,10 @@ class BasicInfoTab extends StatefulWidget {
   final TextEditingController businessNumberController;
   final ValueChanged<ShopType> onShopTypeChanged;
   final ShopType selectedType;
+  final bool pickupService;
+  final bool onlineToOffline;
+  final ValueChanged<bool> onPickupServiceChanged;
+  final ValueChanged<bool> onOnlineToOfflineChanged;
 
   const BasicInfoTab({
     Key? key,
@@ -25,6 +29,10 @@ class BasicInfoTab extends StatefulWidget {
     required this.businessNumberController,
     required this.onShopTypeChanged,
     required this.selectedType,
+    this.pickupService = false,
+    this.onlineToOffline = false,
+    required this.onPickupServiceChanged,
+    required this.onOnlineToOfflineChanged,
   }) : super(key: key);
 
   @override
@@ -171,7 +179,88 @@ class _BasicInfoTabState extends State<BasicInfoTab> {
               helperText: '고객 문의를 받을 카카오톡 ID를 입력하세요',
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
+
+          // 복합 상점 옵션 (온/오프라인 상점만)
+          if (widget.selectedType == ShopType.hybrid) ...[
+            _buildSectionTitle('복합 상점 옵션'),
+            const SizedBox(height: 12),
+            Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+                side: BorderSide(color: Colors.grey.shade300),
+              ),
+              child: Column(
+                children: [
+                  SwitchListTile(
+                    title: const Text('매장 픽업 서비스'),
+                    subtitle: const Text('온라인 주문 후 매장에서 수령 가능'),
+                    value: widget.pickupService,
+                    onChanged: widget.onPickupServiceChanged,
+                    secondary: const Icon(Icons.shopping_bag),
+                    activeColor: AppColors.primaryPink,
+                  ),
+                  const Divider(height: 1),
+                  SwitchListTile(
+                    title: const Text('O2O 서비스'),
+                    subtitle: const Text('온라인 주문 → 오프라인 수령/체험'),
+                    value: widget.onlineToOffline,
+                    onChanged: widget.onOnlineToOfflineChanged,
+                    secondary: const Icon(Icons.sync_alt),
+                    activeColor: AppColors.primaryPink,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.purple.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.purple.shade200),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.tips_and_updates,
+                    size: 20,
+                    color: Colors.purple.shade700,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '복합 상점의 이점',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.purple.shade700,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '• 온라인 고객과 오프라인 고객 모두 확보
+'
+                          '• 픽업 서비스로 배송비 절감 효과
+'
+                          '• 매장 방문 유도로 추가 매출 기회',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.purple.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
 
           // 도움말
           Container(

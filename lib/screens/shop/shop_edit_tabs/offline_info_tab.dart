@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/shop.dart';
 import '../../../theme/app_colors.dart';
+import '../../../widgets/business_hours_widget.dart';
 
 class OfflineInfoTab extends StatefulWidget {
   final Shop shop;
@@ -49,11 +50,28 @@ class OfflineInfoTab extends StatefulWidget {
 class _OfflineInfoTabState extends State<OfflineInfoTab> {
   TimeOfDay? _lunchStart;
   TimeOfDay? _lunchEnd;
+  Map<String, Map<String, String>> _businessHours = {};
+  List<String> _closedDays = [];
 
   @override
   void initState() {
     super.initState();
     _initLunchTime();
+    _initBusinessHours();
+  }
+
+  void _initBusinessHours() {
+    // Initialize business hours from controller if available
+    // This is a simplified initialization - you might want to parse the businessHoursController text
+    _businessHours = {
+      '월요일': {'open': '10:00', 'close': '20:00', 'break_start': '', 'break_end': ''},
+      '화요일': {'open': '10:00', 'close': '20:00', 'break_start': '', 'break_end': ''},
+      '수요일': {'open': '10:00', 'close': '20:00', 'break_start': '', 'break_end': ''},
+      '목요일': {'open': '10:00', 'close': '20:00', 'break_start': '', 'break_end': ''},
+      '금요일': {'open': '10:00', 'close': '20:00', 'break_start': '', 'break_end': ''},
+      '토요일': {'open': '10:00', 'close': '18:00', 'break_start': '', 'break_end': ''},
+      '일요일': {'open': '10:00', 'close': '18:00', 'break_start': '', 'break_end': ''},
+    };
   }
 
   void _initLunchTime() {
@@ -168,55 +186,21 @@ class _OfflineInfoTabState extends State<OfflineInfoTab> {
           // 영업 시간
           _buildSectionTitle('영업 시간'),
           const SizedBox(height: 12),
-          TextFormField(
-            controller: widget.businessHoursController,
-            decoration: const InputDecoration(
-              labelText: '영업시간',
-              hintText: '예: 평일 10:00-20:00, 주말 10:00-18:00',
-              border: OutlineInputBorder(),
-              prefixIcon: Icon(Icons.access_time),
-            ),
-            maxLines: 2,
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: InkWell(
-                  onTap: () => _selectTime(true),
-                  child: InputDecorator(
-                    decoration: const InputDecoration(
-                      labelText: '점심시간 시작',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.lunch_dining),
-                    ),
-                    child: Text(
-                      widget.lunchBreakStartController.text.isEmpty
-                        ? '선택하세요'
-                        : widget.lunchBreakStartController.text,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: InkWell(
-                  onTap: () => _selectTime(false),
-                  child: InputDecorator(
-                    decoration: const InputDecoration(
-                      labelText: '점심시간 종료',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.lunch_dining),
-                    ),
-                    child: Text(
-                      widget.lunchBreakEndController.text.isEmpty
-                        ? '선택하세요'
-                        : widget.lunchBreakEndController.text,
-                    ),
-                  ),
-                ),
-              ),
-            ],
+          BusinessHoursWidget(
+            businessHours: _businessHours,
+            closedDays: _closedDays,
+            onHoursChanged: (hours) {
+              setState(() {
+                _businessHours = hours;
+                // Update controller with formatted hours
+                _updateBusinessHoursController();
+              });
+            },
+            onClosedDaysChanged: (days) {
+              setState(() {
+                _closedDays = days;
+              });
+            },
           ),
           const SizedBox(height: 24),
 
@@ -364,5 +348,26 @@ class _OfflineInfoTabState extends State<OfflineInfoTab> {
         fontWeight: FontWeight.bold,
       ),
     );
+  }
+
+  void _updateBusinessHoursController() {
+    // Convert business hours map to a formatted string
+    final buffer = StringBuffer();
+    final weekDays = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
+    
+    for (var day in weekDays) {
+      if (_closedDays.contains(day)) {
+        buffer.writeln('$day: 휴무');
+      } else if (_businessHours.containsKey(day)) {
+        final hours = _businessHours[day]!;
+        buffer.write('$day: ${hours['open']}-${hours['close']}');
+        if (hours['break_start']!.isNotEmpty && hours['break_end']!.isNotEmpty) {
+          buffer.write(' (점심시간: ${hours['break_start']}-${hours['break_end']})');
+        }
+        buffer.writeln();
+      }
+    }
+    
+    widget.businessHoursController.text = buffer.toString().trim();
   }
 }

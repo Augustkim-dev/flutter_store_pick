@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../models/shop.dart';
+import '../../../services/image_upload_service.dart';
 import '../../../theme/app_colors.dart';
 
 class ImagesTab extends StatefulWidget {
@@ -26,8 +27,11 @@ class ImagesTab extends StatefulWidget {
 
 class _ImagesTabState extends State<ImagesTab> {
   final ImagePicker _picker = ImagePicker();
+  final ImageUploadService _imageUploadService = ImageUploadService();
   File? _mainImageFile;
   List<File> _galleryImageFiles = [];
+  bool _isUploading = false;
+  double _uploadProgress = 0;
 
   Future<void> _pickMainImage() async {
     try {
@@ -41,14 +45,42 @@ class _ImagesTabState extends State<ImagesTab> {
       if (image != null) {
         setState(() {
           _mainImageFile = File(image.path);
+          _isUploading = true;
         });
-        // TODO: Supabase Storage 업로드 구현
-        widget.onMainImageChanged(image.path);
+        
+        // Supabase Storage 업로드
+        final uploadedUrl = await _imageUploadService.uploadMainImage(
+          shopId: widget.shop.id,
+          imageFile: image,
+        );
+        
+        setState(() {
+          _isUploading = false;
+        });
+        
+        if (uploadedUrl != null) {
+          widget.onMainImageChanged(uploadedUrl);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('메인 이미지가 업로드되었습니다'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+        } else {
+          widget.onMainImageChanged(image.path);
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('이미지 선택 실패: $e')),
-      );
+      setState(() {
+        _isUploading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('이미지 선택 실패: $e')),
+        );
+      }
     }
   }
 
@@ -63,17 +95,57 @@ class _ImagesTabState extends State<ImagesTab> {
       if (images.isNotEmpty) {
         setState(() {
           _galleryImageFiles.addAll(images.map((img) => File(img.path)));
+          _isUploading = true;
+          _uploadProgress = 0;
         });
         
-        // TODO: Supabase Storage 업로드 구현
-        final updatedUrls = List<String>.from(widget.galleryImageUrls);
-        updatedUrls.addAll(images.map((img) => img.path));
-        widget.onGalleryImagesChanged(updatedUrls);
+        // Supabase Storage 업로드 with progress
+        _imageUploadService.onProgress = (progress) {
+          setState(() {
+            _uploadProgress = progress;
+          });
+        };
+        
+        final uploadedUrls = await _imageUploadService.uploadGalleryImages(
+          shopId: widget.shop.id,
+          imageFiles: images,
+        );
+        
+        setState(() {
+          _isUploading = false;
+          _uploadProgress = 0;
+        });
+        
+        if (uploadedUrls.isNotEmpty) {
+          final updatedUrls = List<String>.from(widget.galleryImageUrls);
+          updatedUrls.addAll(uploadedUrls);
+          widget.onGalleryImagesChanged(updatedUrls);
+          
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('${uploadedUrls.length}개 이미지가 업로드되었습니다'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+        } else {
+          // Fallback to local paths
+          final updatedUrls = List<String>.from(widget.galleryImageUrls);
+          updatedUrls.addAll(images.map((img) => img.path));
+          widget.onGalleryImagesChanged(updatedUrls);
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('이미지 선택 실패: $e')),
-      );
+      setState(() {
+        _isUploading = false;
+        _uploadProgress = 0;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('이미지 선택 실패: $e')),
+        );
+      }
     }
   }
 
@@ -198,9 +270,29 @@ class _ImagesTabState extends State<ImagesTab> {
           _buildSectionTitle('갤러리 이미지'),
           const SizedBox(height: 12),
           
+          // 업로드 진행 상황
+          if (_isUploading) ...[
+            LinearProgressIndicator(
+              value: _uploadProgress > 0 ? _uploadProgress / 100 : null,
+              backgroundColor: Colors.grey.shade200,
+              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryPink),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              _uploadProgress > 0 
+                ? '업로드 중... ${_uploadProgress.toStringAsFixed(0)}%'
+                : '업로드 준비 중...',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey.shade600,
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+          
           // 이미지 추가 버튼
           OutlinedButton.icon(
-            onPressed: _pickGalleryImages,
+            onPressed: _isUploading ? null : _pickGalleryImages,
             icon: const Icon(Icons.add_photo_alternate),
             label: const Text('이미지 추가'),
             style: OutlinedButton.styleFrom(

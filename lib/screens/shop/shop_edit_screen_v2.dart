@@ -352,6 +352,10 @@ class _ShopEditScreenV2State extends State<ShopEditScreenV2>
                   _selectedType = type;
                 });
               },
+              pickupService: _pickupService,
+              onlineToOffline: _onlineToOffline,
+              onPickupServiceChanged: (value) => setState(() => _pickupService = value),
+              onOnlineToOfflineChanged: (value) => setState(() => _onlineToOffline = value),
             ),
             
             // 오프라인 정보 탭
