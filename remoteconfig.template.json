@@ -1,0 +1,79 @@
+{
+  "parameterGroups": {
+    "Version Management": {
+      "description": "앱 버전 관리 설정",
+      "parameters": {
+        "minimum_version": {
+          "defaultValue": {
+            "value": "1.0.0"
+          },
+          "description": "최소 필수 버전 - 이 버전보다 낮으면 강제 업데이트",
+          "valueType": "STRING"
+        },
+        "latest_version": {
+          "defaultValue": {
+            "value": "1.0.0"
+          },
+          "description": "최신 버전 - 선택적 업데이트 안내",
+          "valueType": "STRING"
+        },
+        "force_update": {
+          "defaultValue": {
+            "value": "false"
+          },
+          "description": "강제 업데이트 여부",
+          "valueType": "BOOLEAN"
+        },
+        "update_message": {
+          "defaultValue": {
+            "value": "새로운 버전이 출시되었습니다! 업데이트하여 최신 기능을 사용해보세요."
+          },
+          "description": "업데이트 안내 메시지",
+          "valueType": "STRING"
+        }
+      }
+    },
+    "Store URLs": {
+      "description": "앱 스토어 URL 설정",
+      "parameters": {
+        "update_url_android": {
+          "defaultValue": {
+            "value": "https://play.google.com/store/apps/details?id=com.accu.balletPlus"
+          },
+          "description": "Android 앱 스토어 URL",
+          "valueType": "STRING"
+        },
+        "update_url_ios": {
+          "defaultValue": {
+            "value": "https://apps.apple.com/app/idYOURAPPID"
+          },
+          "description": "iOS 앱 스토어 URL (앱 등록 후 실제 ID로 변경 필요)",
+          "valueType": "STRING"
+        }
+      }
+    },
+    "Maintenance": {
+      "description": "서버 점검 설정",
+      "parameters": {
+        "maintenance_mode": {
+          "defaultValue": {
+            "value": "false"
+          },
+          "description": "서버 점검 모드 (true일 경우 앱 사용 불가)",
+          "valueType": "BOOLEAN"
+        },
+        "maintenance_message": {
+          "defaultValue": {
+            "value": "서버 점검 중입니다. 잠시 후 다시 시도해주세요."
+          },
+          "description": "서버 점검 안내 메시지",
+          "valueType": "STRING"
+        }
+      }
+    }
+  },
+  "conditions": [],
+  "version": {
+    "versionNumber": "1"
+  }
+}
