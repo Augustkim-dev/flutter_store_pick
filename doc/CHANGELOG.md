@@ -5,6 +5,76 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-01-20
+
+### Added
+- **상점관리자 Phase 1-1 완료**
+  - 상점 편집 화면 탭 구조로 전면 개편
+    - 기본 정보, 오프라인, 온라인, 브랜드/카테고리, 이미지 탭으로 구분
+    - 각 탭별 전문화된 입력 폼 제공
+  - 데이터 모델 대폭 확장
+    - Shop 모델에 30개 이상의 새로운 필드 추가
+    - ShopBrand, ShopCategory, ShippingRegion 모델 신규 생성
+  - 오프라인 상점 세부 기능
+    - 상세 위치 설명 (층수, 구역 등)
+    - 점심시간 설정 기능
+    - 편의시설 체크박스 (휠체어 접근성, 아동 동반 등)
+    - 대중교통/도보 경로 안내
+  - 온라인 상점 세부 기능
+    - 지역별 차등 배송비 설정
+    - 결제 수단 멀티 선택
+    - CS 채널별 정보 입력 (전화, 카카오톡, 이메일)
+    - 교환/환불 정책 상세 설정
+  - 복합 상점 특화 기능
+    - 매장 픽업 서비스 설정
+    - 온라인 주문 → 오프라인 수령 옵션
+  - 브랜드/카테고리 관리
+    - 취급 브랜드 검색 및 추가
+    - 주력 브랜드 설정
+    - 전문 카테고리 표시
+  - 이미지 갤러리 시스템
+    - 다중 이미지 업로드
+    - 이미지 순서 변경
+    - 썸네일 자동 생성
+
+### Improved
+- **메인 화면 및 상세 화면 개선**
+  - ShopCard 위젯 정보 표시 강화
+    - 상점 유형별 뱃지 표시
+    - 주요 브랜드 표시
+    - 실시간 영업 상태 표시
+  - ShopDetailScreen 대폭 개선
+    - 정보 탭 신규 추가
+    - 이미지 갤러리 뷰어 구현
+    - 상점 유형별 맞춤 정보 표시
+- **성능 최적화**
+  - 이미지 로딩 최적화 (lazy loading, 캐싱)
+  - 데이터 페칭 개선 (batch loading)
+  - UI 렌더링 최적화
+- **코드 구조 개선**
+  - 서비스 레이어 확장 및 모듈화
+  - 재사용 가능한 위젯 컴포넌트 생성
+  - 에러 핸들링 강화
+
+### Fixed
+- Supabase 데이터 저장 시 발생하던 타입 불일치 오류 수정
+- 영업시간 표시 로직 버그 수정
+- 이미지 업로드 크기 제한 적용 (5MB)
+- 폼 유효성 검증 누락 부분 보완
+
+### Technical Details
+- **New Database Tables**
+  - `shop_brands`: 상점별 브랜드 관리
+  - `shop_categories`: 상점별 카테고리 관리
+  - `shipping_regions`: 지역별 배송비 설정
+- **Extended shops Table**
+  - 30+ 새로운 컬럼 추가
+  - 오프라인/온라인/복합 상점별 전용 필드
+- **New Services**
+  - CategoryService: 카테고리 CRUD
+  - ShippingService: 배송 정책 관리
+  - ImageService: 이미지 업로드/관리
+
 ## [1.0.0] - 2024-12-25
 
 ### Added
