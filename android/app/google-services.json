@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "767185697219",
+    "project_id": "balletplus-519b5",
+    "storage_bucket": "balletplus-519b5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:767185697219:android:39bbfdc3684afb79d52576",
+        "android_client_info": {
+          "package_name": "com.accu.balletPlus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBf7cnR-S7Vf7zw2rq3ox7ptJ9rMcDd46w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
