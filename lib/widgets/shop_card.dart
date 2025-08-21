@@ -4,6 +4,8 @@ import '../models/review.dart';
 import '../theme/app_colors.dart';
 import '../services/review_service.dart';
 import 'favorite_button.dart';
+import '../utils/app_logger.dart';
+import '../utils/business_hours_parser.dart';
 
 class ShopCard extends StatefulWidget {
   final Shop shop;
@@ -57,17 +59,7 @@ class _ShopCardState extends State<ShopCard> {
 
   // 영업 상태 확인
   bool _isOpenNow() {
-    // TODO: 실제 영업시간 데이터로 판단
-    final now = DateTime.now();
-    final hour = now.hour;
-    final weekday = now.weekday;
-    
-    // 기본 영업시간: 평일 10-20, 주말 10-18
-    if (weekday >= 1 && weekday <= 5) {
-      return hour >= 10 && hour < 20;
-    } else {
-      return hour >= 10 && hour < 18;
-    }
+    return BusinessHoursParser.isOpenNow(widget.shop.businessHours);
   }
 
   @override
@@ -77,7 +69,10 @@ class _ShopCardState extends State<ShopCard> {
         : true;
 
     return GestureDetector(
-      onTap: widget.onTap,
+      onTap: () {
+        AppLogger.d('ShopCard tapped: ${widget.shop.name} (id: ${widget.shop.id})');
+        widget.onTap();
+      },
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(

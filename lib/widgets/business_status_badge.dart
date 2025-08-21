@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/shop.dart';
+import '../utils/business_hours_parser.dart';
 
 class BusinessStatusBadge extends StatelessWidget {
   final Shop shop;
@@ -10,25 +11,11 @@ class BusinessStatusBadge extends StatelessWidget {
   }) : super(key: key);
 
   bool _isOpenNow() {
-    // TODO: 실제 영업시간 데이터로 판단
-    final now = DateTime.now();
-    final hour = now.hour;
-    final weekday = now.weekday;
-    
-    // 기본 영업시간: 평일 10-20, 주말 10-18
-    if (weekday >= 1 && weekday <= 5) {
-      return hour >= 10 && hour < 20;
-    } else {
-      return hour >= 10 && hour < 18;
-    }
+    return BusinessHoursParser.isOpenNow(shop.businessHours);
   }
 
   bool _isLunchTime() {
-    final now = DateTime.now();
-    final hour = now.hour;
-    
-    // 기본 점심시간: 12-13시
-    return hour == 12;
+    return BusinessHoursParser.isLunchTime(shop.businessHours);
   }
 
   @override
