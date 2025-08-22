@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'home_screen.dart';
+import 'dashboard_screen.dart';
+import 'shop_list_screen.dart';
 import 'search_screen.dart';
 import 'map_screen.dart';
 import 'profile/profile_screen.dart';
@@ -21,6 +22,7 @@ class _MainScreenState extends State<MainScreen> {
   
   // 각 탭의 Navigator Key를 유지
   final List<GlobalKey<NavigatorState>> _navigatorKeys = [
+    GlobalKey<NavigatorState>(),
     GlobalKey<NavigatorState>(),
     GlobalKey<NavigatorState>(),
     GlobalKey<NavigatorState>(),
@@ -73,7 +75,7 @@ class _MainScreenState extends State<MainScreen> {
         body: PageView.builder(
           controller: _pageController,
           physics: const NeverScrollableScrollPhysics(), // 스와이프 비활성화
-          itemCount: 4,
+          itemCount: 5,
           itemBuilder: (context, index) {
             // 한 번 로드된 화면은 캐싱하여 재사용
             if (_cachedScreens.containsKey(index)) {
@@ -134,6 +136,11 @@ class _MainScreenState extends State<MainScreen> {
                 label: '홈',
               ),
               BottomNavigationBarItem(
+                icon: Icon(Icons.store_outlined),
+                activeIcon: Icon(Icons.store),
+                label: '발레샵',
+              ),
+              BottomNavigationBarItem(
                 icon: Icon(Icons.search_outlined),
                 activeIcon: Icon(Icons.search),
                 label: '검색',
@@ -161,19 +168,22 @@ class _MainScreenState extends State<MainScreen> {
     
     switch (index) {
       case 0:
-        screen = const HomeScreen();
+        screen = const DashboardScreen();
         break;
       case 1:
-        screen = const SearchScreen();
+        screen = const ShopListScreen();
         break;
       case 2:
-        screen = const MapScreen();
+        screen = const SearchScreen();
         break;
       case 3:
+        screen = const MapScreen();
+        break;
+      case 4:
         screen = const ProfileScreen();
         break;
       default:
-        screen = const HomeScreen();
+        screen = const DashboardScreen();
     }
     
     // Navigator로 감싸서 각 탭에서 독립적인 네비게이션 스택 유지
