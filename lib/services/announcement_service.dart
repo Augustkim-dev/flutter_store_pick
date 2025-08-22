@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/announcement.dart';
+import '../utils/app_logger.dart';
 
 class AnnouncementService {
   final _supabase = Supabase.instance.client;
@@ -18,7 +19,7 @@ class AnnouncementService {
           .map((json) => Announcement.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching shop announcements: $e');
+      AppLogger.e('Error fetching shop announcements', e);
       return [];
     }
   }
@@ -35,7 +36,7 @@ class AnnouncementService {
           .map((json) => Announcement.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching active announcements: $e');
+      AppLogger.e('Error fetching active announcements', e);
       return [];
     }
   }
@@ -51,7 +52,7 @@ class AnnouncementService {
 
       return Announcement.fromJson(response);
     } catch (e) {
-      print('Error creating announcement: $e');
+      AppLogger.e('Error creating announcement', e);
       return null;
     }
   }
@@ -66,7 +67,7 @@ class AnnouncementService {
 
       return true;
     } catch (e) {
-      print('Error updating announcement: $e');
+      AppLogger.e('Error updating announcement', e);
       return false;
     }
   }
@@ -81,7 +82,7 @@ class AnnouncementService {
 
       return true;
     } catch (e) {
-      print('Error deleting announcement: $e');
+      AppLogger.e('Error deleting announcement', e);
       return false;
     }
   }
@@ -96,7 +97,7 @@ class AnnouncementService {
 
       return true;
     } catch (e) {
-      print('Error toggling announcement status: $e');
+      AppLogger.e('Error toggling announcement status', e);
       return false;
     }
   }
@@ -111,7 +112,7 @@ class AnnouncementService {
 
       return true;
     } catch (e) {
-      print('Error toggling announcement pin: $e');
+      AppLogger.e('Error toggling announcement pin', e);
       return false;
     }
   }
@@ -127,7 +128,7 @@ class AnnouncementService {
 
       return Announcement.fromJson(response);
     } catch (e) {
-      print('Error fetching announcement: $e');
+      AppLogger.e('Error fetching announcement', e);
       return null;
     }
   }
@@ -144,7 +145,7 @@ class AnnouncementService {
 
       return response.count;
     } catch (e) {
-      print('Error fetching announcement count: $e');
+      AppLogger.e('Error fetching announcement count', e);
       return 0;
     }
   }
@@ -155,7 +156,7 @@ class AnnouncementService {
       final count = await getAnnouncementCount(shopId);
       return count > 0;
     } catch (e) {
-      print('Error checking active announcements: $e');
+      AppLogger.e('Error checking active announcements', e);
       return false;
     }
   }
@@ -175,7 +176,7 @@ class AnnouncementService {
           .map((json) => Announcement.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching pinned announcements: $e');
+      AppLogger.e('Error fetching pinned announcements', e);
       return [];
     }
   }
@@ -193,7 +194,7 @@ class AnnouncementService {
 
       return true;
     } catch (e) {
-      print('Error batch updating announcements: $e');
+      AppLogger.e('Error batch updating announcements', e);
       return false;
     }
   }

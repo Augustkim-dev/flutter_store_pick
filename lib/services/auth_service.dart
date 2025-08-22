@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/user_profile.dart';
+import '../utils/app_logger.dart';
 
 class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -27,7 +28,7 @@ class AuthService {
         return UserProfile.fromJson(response);
       } else {
         // 프로필이 없으면 생성
-        print('Profile not found, creating new profile for user: ${user.id}');
+        AppLogger.d('Profile not found, creating new profile for user: ${user.id}');
         await _createProfile(
           userId: user.id,
           email: user.email ?? '',
@@ -44,7 +45,7 @@ class AuthService {
         return UserProfile.fromJson(newProfile);
       }
     } catch (e) {
-      print('Error fetching/creating user profile: $e');
+      AppLogger.e('Error fetching/creating user profile', e);
       // 기본 프로필 반환
       return UserProfile(
         id: user.id,
@@ -166,7 +167,7 @@ class AuthService {
       
       if (existingProfile != null) {
         // 프로필이 이미 존재하면 스킵 (user_type 유지)
-        print('Profile already exists for user: $userId with user_type: ${existingProfile['user_type']}');
+        AppLogger.d('Profile already exists for user: $userId with user_type: ${existingProfile['user_type']}');
         return;
       }
       
@@ -176,9 +177,9 @@ class AuthService {
         'full_name': fullName,
         'user_type': 'general',
       });
-      print('Profile created successfully for user: $userId');
+      AppLogger.d('Profile created successfully for user: $userId');
     } catch (e) {
-      print('Error creating profile: $e');
+      AppLogger.e('Error creating profile', e);
       // 이미 존재하는 경우는 무시
       if (!e.toString().contains('duplicate')) {
         rethrow;
@@ -189,7 +190,7 @@ class AuthService {
   // 프로필 존재 확인 및 생성
   Future<void> _ensureProfileExists(User user) async {
     try {
-      print('Ensuring profile exists for user ${user.id}');
+      AppLogger.d('Ensuring profile exists for user ${user.id}');
       
       // 먼저 기존 프로필이 있는지 확인
       final existingProfile = await _supabase
@@ -200,13 +201,13 @@ class AuthService {
       
       if (existingProfile != null) {
         // 프로필이 이미 존재하면 user_type은 유지하고 updated_at만 업데이트
-        print('Profile already exists for user ${user.id}, keeping user_type: ${existingProfile['user_type']}');
+        AppLogger.d('Profile already exists for user ${user.id}, keeping user_type: ${existingProfile['user_type']}');
         await _supabase.from('profiles').update({
           'updated_at': DateTime.now().toIso8601String(),
         }).eq('id', user.id);
       } else {
         // 프로필이 없으면 새로 생성
-        print('Creating new profile for user ${user.id}');
+        AppLogger.d('Creating new profile for user ${user.id}');
         await _supabase.from('profiles').insert({
           'id': user.id,
           'full_name': user.userMetadata?['full_name'],
@@ -224,24 +225,24 @@ class AuthService {
           .single();
       
       if (profile != null) {
-        print('Profile confirmed for user ${user.id} with user_type: ${profile['user_type']}');
+        AppLogger.d('Profile confirmed for user ${user.id} with user_type: ${profile['user_type']}');
       } else {
         throw Exception('Profile creation failed for user ${user.id}');
       }
     } catch (e) {
-      print('Error ensuring profile exists: $e');
+      AppLogger.e('Error ensuring profile exists', e);
       // 재시도 (새 프로필 생성만)
       try {
-        print('Retrying profile creation...');
+        AppLogger.d('Retrying profile creation...');
         await _supabase.from('profiles').insert({
           'id': user.id,
           'user_type': 'general',
         }).onError((error, stackTrace) {
-          print('Profile creation retry failed: $error');
+          AppLogger.e('Profile creation retry failed', error);
           return {};
         });
       } catch (retryError) {
-        print('Profile creation retry also failed: $retryError');
+        AppLogger.e('Profile creation retry also failed', retryError);
       }
     }
   }
@@ -257,7 +258,7 @@ class AuthService {
       
       return response == null;
     } catch (e) {
-      print('Error checking email availability: $e');
+      AppLogger.e('Error checking email availability', e);
       return false;
     }
   }
@@ -273,7 +274,7 @@ class AuthService {
       
       return response == null;
     } catch (e) {
-      print('Error checking username availability: $e');
+      AppLogger.e('Error checking username availability', e);
       return false;
     }
   }

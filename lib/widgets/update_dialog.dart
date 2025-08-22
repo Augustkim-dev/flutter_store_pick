@@ -16,8 +16,8 @@ class UpdateDialog {
       context: context,
       barrierDismissible: false, // 다이얼로그 바깥 터치로 닫기 불가
       builder: (BuildContext context) {
-        return WillPopScope(
-          onWillPop: () async => false, // 뒤로가기 버튼 무효화
+        return PopScope(
+          canPop: false, // 뒤로가기 버튼 무효화
           child: AlertDialog(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
@@ -178,6 +178,7 @@ class UpdateDialog {
                     await launchUrl(url, mode: LaunchMode.externalApplication);
                   }
                 }
+                if (!context.mounted) return;
                 Navigator.of(context).pop(true);
               },
               style: ElevatedButton.styleFrom(
@@ -203,8 +204,8 @@ class UpdateDialog {
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
-        return WillPopScope(
-          onWillPop: () async => false,
+        return PopScope(
+          canPop: false,
           child: AlertDialog(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),

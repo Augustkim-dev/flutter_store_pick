@@ -3,6 +3,7 @@ import '../services/auth_service.dart';
 import '../services/favorite_service.dart';
 import '../theme/app_colors.dart';
 import '../screens/auth/login_screen.dart';
+import '../utils/app_logger.dart';
 
 class FavoriteButton extends StatefulWidget {
   final String shopId;
@@ -55,13 +56,13 @@ class _FavoriteButtonState extends State<FavoriteButton> with SingleTickerProvid
 
   Future<void> _checkFavoriteStatus() async {
     if (_authService.currentUser == null) {
-      print('User not logged in - cannot check favorite status');
+      AppLogger.d('User not logged in - cannot check favorite status');
       return;
     }
     
-    print('Checking favorite status for shop: ${widget.shopId}');
+    AppLogger.d('Checking favorite status for shop: ${widget.shopId}');
     final isFavorite = await _favoriteService.checkFavorite(widget.shopId);
-    print('Shop ${widget.shopId} favorite status: $isFavorite');
+    AppLogger.d('Shop ${widget.shopId} favorite status: $isFavorite');
     
     if (mounted) {
       setState(() {
@@ -71,11 +72,11 @@ class _FavoriteButtonState extends State<FavoriteButton> with SingleTickerProvid
   }
 
   Future<void> _toggleFavorite() async {
-    print('Toggle favorite for shop: ${widget.shopId}');
+    AppLogger.d('Toggle favorite for shop: ${widget.shopId}');
     
     // 로그인 체크
     if (_authService.currentUser == null) {
-      print('User not logged in');
+      AppLogger.d('User not logged in');
       final result = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
@@ -119,7 +120,7 @@ class _FavoriteButtonState extends State<FavoriteButton> with SingleTickerProvid
       });
       
       final success = await _favoriteService.toggleFavorite(widget.shopId);
-      print('Toggle result: $success, new state: ${!_isFavorite}');
+      AppLogger.d('Toggle result: $success, new state: ${!_isFavorite}');
       
       if (success && mounted) {
         setState(() {

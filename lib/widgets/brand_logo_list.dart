@@ -27,9 +27,9 @@ class BrandLogoList extends StatelessWidget {
   Color _getBrandColor(String brand) {
     // 브랜드명의 해시코드를 사용하여 일관된 색상 생성
     final colors = [
-      AppColors.primaryPink.withOpacity(0.1),
-      AppColors.secondaryPurple.withOpacity(0.1),
-      AppColors.secondaryAccent.withOpacity(0.1),
+      AppColors.primaryPink.withValues(alpha: 0.1),
+      AppColors.secondaryPurple.withValues(alpha: 0.1),
+      AppColors.secondaryAccent.withValues(alpha: 0.1),
       Colors.blue.shade50,
       Colors.green.shade50,
       Colors.orange.shade50,

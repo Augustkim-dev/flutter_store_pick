@@ -63,10 +63,6 @@ class _MapScreenState extends State<MapScreen> {
     }
   }
   
-  void _updateCurrentLocationMarker() {
-    // 네이버 지도의 기본 위치 추적 기능을 사용하므로 별도 마커 생성 불필요
-    // 위치 버튼 클릭 시 지도 중심 이동만 처리
-  }
   
   Future<void> _loadOfflineShops() async {
     try {

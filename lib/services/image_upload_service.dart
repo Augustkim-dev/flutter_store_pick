@@ -1,9 +1,7 @@
-import 'dart:io';
-import 'dart:typed_data';
-import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
 import 'supabase_service.dart';
+import '../utils/app_logger.dart';
 
 class ImageUploadService {
   final SupabaseService _supabaseService = SupabaseService();
@@ -46,9 +44,7 @@ class ImageUploadService {
       
       return null;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error uploading main image: $e');
-      }
+      AppLogger.e('Error uploading main image', e);
       return null;
     }
   }
@@ -87,9 +83,7 @@ class ImageUploadService {
           uploadedUrls.add(publicUrl);
         }
       } catch (e) {
-        if (kDebugMode) {
-          print('Error uploading gallery image ${i + 1}: $e');
-        }
+        AppLogger.e('Error uploading gallery image ${i + 1}', e);
       }
     }
     
@@ -115,9 +109,7 @@ class ImageUploadService {
       
       return response.isNotEmpty;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error deleting image: $e');
-      }
+      AppLogger.e('Error deleting image', e);
       return false;
     }
   }
@@ -146,9 +138,7 @@ class ImageUploadService {
       
       return response.isNotEmpty;
     } catch (e) {
-      if (kDebugMode) {
-        print('Error deleting multiple images: $e');
-      }
+      AppLogger.e('Error deleting multiple images', e);
       return false;
     }
   }
@@ -172,9 +162,7 @@ class ImageUploadService {
             .remove(filePaths);
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('Error deleting existing main image: $e');
-      }
+      AppLogger.e('Error deleting existing main image', e);
     }
   }
 
@@ -185,12 +173,6 @@ class ImageUploadService {
     return '${prefix}_${timestamp}$extension';
   }
 
-  // 이미지 압축 (옵션)
-  Future<Uint8List> _compressImage(Uint8List imageBytes, {int quality = 85}) async {
-    // TODO: image 패키지를 사용하여 이미지 압축 구현
-    // 현재는 원본 반환
-    return imageBytes;
-  }
 
   // 썸네일 생성 (옵션)
   Future<String?> generateThumbnail({
@@ -256,8 +238,8 @@ class ImageUploadService {
       }
     }
     
-    if (failedFiles.isNotEmpty && kDebugMode) {
-      print('Failed to upload ${failedFiles.length} images after $maxRetries retries');
+    if (failedFiles.isNotEmpty) {
+      AppLogger.w('Failed to upload ${failedFiles.length} images after $maxRetries retries');
     }
     
     return uploadedUrls;

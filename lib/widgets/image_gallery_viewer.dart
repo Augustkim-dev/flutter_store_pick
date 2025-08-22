@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../theme/app_colors.dart';
 
 class ImageGalleryViewer extends StatefulWidget {
   final String mainImageUrl;
@@ -105,10 +104,10 @@ class _ImageGalleryViewerState extends State<ImageGalleryViewer> {
                       shape: BoxShape.circle,
                       color: _currentIndex == index
                           ? Colors.white
-                          : Colors.white.withOpacity(0.5),
+                          : Colors.white.withValues(alpha: 0.5),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.3),
+                          color: Colors.black.withValues(alpha: 0.3),
                           blurRadius: 2,
                         ),
                       ],
@@ -129,7 +128,7 @@ class _ImageGalleryViewerState extends State<ImageGalleryViewer> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.6),
+                  color: Colors.black.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
@@ -162,7 +161,7 @@ class _ImageGalleryViewerState extends State<ImageGalleryViewer> {
                     icon: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
+                        color: Colors.black.withValues(alpha: 0.5),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -192,7 +191,7 @@ class _ImageGalleryViewerState extends State<ImageGalleryViewer> {
                     icon: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
+                        color: Colors.black.withValues(alpha: 0.5),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -307,7 +306,7 @@ class _FullScreenGalleryState extends State<_FullScreenGallery> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.6),
+                    Colors.black.withValues(alpha: 0.6),
                     Colors.transparent,
                   ],
                 ),
@@ -360,7 +359,7 @@ class _FullScreenGalleryState extends State<_FullScreenGallery> {
                     begin: Alignment.bottomCenter,
                     end: Alignment.topCenter,
                     colors: [
-                      Colors.black.withOpacity(0.8),
+                      Colors.black.withValues(alpha: 0.8),
                       Colors.transparent,
                     ],
                   ),

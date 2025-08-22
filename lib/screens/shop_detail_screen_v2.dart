@@ -3,8 +3,8 @@ import '../models/shop.dart';
 import '../models/review.dart';
 import '../services/shop_service.dart';
 import '../services/review_service.dart';
-import '../services/announcement_service.dart';
 import '../theme/app_colors.dart';
+import '../utils/app_logger.dart';
 import '../widgets/favorite_button.dart';
 import '../widgets/review_list_widget.dart';
 import '../widgets/announcement_list_widget.dart';
@@ -56,7 +56,9 @@ class _ShopDetailScreenV2State extends State<ShopDetailScreenV2>
         _error = null;
       });
 
+      AppLogger.d('Loading shop data for shopId: ${widget.shopId}');
       final shop = await _shopService.getShopById(widget.shopId);
+      AppLogger.d('Shop loaded: ${shop?.name ?? "null"}, id: ${shop?.id ?? "null"}');
       final rating = await _reviewService.getShopRating(widget.shopId);
 
       if (mounted) {
@@ -67,6 +69,7 @@ class _ShopDetailScreenV2State extends State<ShopDetailScreenV2>
         });
       }
     } catch (e) {
+      AppLogger.e('Error loading shop data', e);
       if (mounted) {
         setState(() {
           _error = e.toString();

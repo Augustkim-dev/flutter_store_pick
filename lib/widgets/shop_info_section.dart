@@ -315,7 +315,7 @@ class ShopInfoSection extends StatelessWidget {
           children: shop.categories.map((category) {
             return Chip(
               label: Text(category),
-              backgroundColor: AppColors.primaryPink.withOpacity(0.1),
+              backgroundColor: AppColors.primaryPink.withValues(alpha: 0.1),
               labelStyle: const TextStyle(
                 color: AppColors.primaryPink,
                 fontSize: 13,
@@ -442,10 +442,10 @@ class ShopInfoSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.success.withOpacity(0.1),
+        color: AppColors.success.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: AppColors.success.withOpacity(0.3),
+          color: AppColors.success.withValues(alpha: 0.3),
         ),
       ),
       child: Row(

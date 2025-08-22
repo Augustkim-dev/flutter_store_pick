@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/review_reply.dart';
 import '../models/review.dart';
+import '../utils/app_logger.dart';
 
 class ReviewReplyService {
   final _supabase = Supabase.instance.client;
@@ -15,7 +16,7 @@ class ReviewReplyService {
       // Check if reply already exists
       final existing = await getReplyForReview(reviewId);
       if (existing != null) {
-        print('Reply already exists for this review');
+        AppLogger.w('Reply already exists for this review');
         return null;
       }
 
@@ -31,7 +32,7 @@ class ReviewReplyService {
 
       return ReviewReply.fromJson(response);
     } catch (e) {
-      print('Error creating reply: $e');
+      AppLogger.e('Error creating reply', e);
       return null;
     }
   }
@@ -46,7 +47,7 @@ class ReviewReplyService {
 
       return true;
     } catch (e) {
-      print('Error updating reply: $e');
+      AppLogger.e('Error updating reply', e);
       return false;
     }
   }
@@ -61,7 +62,7 @@ class ReviewReplyService {
 
       return true;
     } catch (e) {
-      print('Error deleting reply: $e');
+      AppLogger.e('Error deleting reply', e);
       return false;
     }
   }
@@ -80,7 +81,7 @@ class ReviewReplyService {
       }
       return null;
     } catch (e) {
-      print('Error fetching reply: $e');
+      AppLogger.e('Error fetching reply', e);
       return null;
     }
   }
@@ -98,7 +99,7 @@ class ReviewReplyService {
           .map((json) => ReviewReply.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching shop replies: $e');
+      AppLogger.e('Error fetching shop replies', e);
       return [];
     }
   }
@@ -116,7 +117,7 @@ class ReviewReplyService {
           .map((json) => Review.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching reviews with replies: $e');
+      AppLogger.e('Error fetching reviews with replies', e);
       return [];
     }
   }
@@ -135,7 +136,7 @@ class ReviewReplyService {
           .map((json) => Review.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching unanswered reviews: $e');
+      AppLogger.e('Error fetching unanswered reviews', e);
       return [];
     }
   }
@@ -169,7 +170,7 @@ class ReviewReplyService {
         'reply_rate': replyRate,
       };
     } catch (e) {
-      print('Error fetching reply stats: $e');
+      AppLogger.e('Error fetching reply stats', e);
       return {
         'total_reviews': 0,
         'replied_reviews': 0,
@@ -200,7 +201,7 @@ class ReviewReplyService {
       final existingReply = await getReplyForReview(reviewId);
       return existingReply == null;
     } catch (e) {
-      print('Error checking reply permission: $e');
+      AppLogger.e('Error checking reply permission', e);
       return false;
     }
   }
@@ -220,7 +221,7 @@ class ReviewReplyService {
 
       return List<Map<String, dynamic>>.from(response);
     } catch (e) {
-      print('Error fetching recent replies: $e');
+      AppLogger.e('Error fetching recent replies', e);
       return [];
     }
   }
@@ -243,7 +244,7 @@ class ReviewReplyService {
 
       return reviewIds.difference(repliedIds).toList();
     } catch (e) {
-      print('Error fetching unanswered review IDs: $e');
+      AppLogger.e('Error fetching unanswered review IDs', e);
       return [];
     }
   }

@@ -2,12 +2,13 @@ import 'package:flutter/foundation.dart';
 import '../models/shop.dart';
 import '../data/dummy_shops.dart';
 import 'supabase_service.dart';
+import '../utils/app_logger.dart';
 
 class ShopService {
   final SupabaseService _supabaseService = SupabaseService();
   
   // 모드 전환 플래그 (true: Supabase, false: 더미 데이터)
-  bool _useSupabase = false;
+  bool _useSupabase = true;
   
   // Supabase 사용 가능 여부 확인
   bool get isSupabaseEnabled => _useSupabase;
@@ -47,11 +48,16 @@ class ShopService {
   
   // 상점 ID로 조회
   Future<Shop?> getShopById(String id) async {
+    AppLogger.d('getShopById called with id: $id, useSupabase: $_useSupabase');
     if (!_useSupabase) {
       // 더미 데이터에서 찾기
       try {
-        return DummyShops.shops.firstWhere((shop) => shop.id == id);
+        final shop = DummyShops.shops.firstWhere((shop) => shop.id == id);
+        AppLogger.d('Found shop in dummy data: ${shop.name}');
+        return shop;
       } catch (e) {
+        AppLogger.w('Shop not found in dummy data with id: $id');
+        AppLogger.d('Available shop IDs: ${DummyShops.shops.map((s) => s.id).toList()}');
         return null;
       }
     }

@@ -90,13 +90,12 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
 
     if (confirmed == true) {
       await _authService.signOut();
-      if (mounted) {
-        // 상태 업데이트 (로그인 화면이 자동으로 표시됨)
-        setState(() {
-          _userProfile = null;
-          _favoriteShops = [];
-        });
-      }
+      if (!context.mounted) return;
+      // 상태 업데이트 (로그인 화면이 자동으로 표시됨)
+      setState(() {
+        _userProfile = null;
+        _favoriteShops = [];
+      });
     }
   }
 
@@ -406,7 +405,7 @@ class _ProfileScreenState extends State<ProfileScreen> with SingleTickerProvider
               onDismissed: (direction) async {
                 await _favoriteService.removeFavorite(shop.id);
                 await _loadUserData();
-                if (!mounted) return;
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text('${shop.name}이(가) 즐겨찾기에서 삭제되었습니다'),

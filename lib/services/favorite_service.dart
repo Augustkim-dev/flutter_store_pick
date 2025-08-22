@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../utils/app_logger.dart';
 
 class FavoriteService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -9,7 +10,7 @@ class FavoriteService {
     if (user == null) return false;
     
     try {
-      print('Checking profile for favorites - User: ${user.id}');
+      AppLogger.d('Checking profile for favorites - User: ${user.id}');
       
       // upsert를 사용하여 확실하게 프로필 생성
       await _supabase.from('profiles').upsert({
@@ -26,14 +27,14 @@ class FavoriteService {
           .maybeSingle();
       
       if (profile != null) {
-        print('Profile confirmed for favorites');
+        AppLogger.d('Profile confirmed for favorites');
         return true;
       } else {
-        print('Profile still not found after upsert');
+        AppLogger.w('Profile still not found after upsert');
         return false;
       }
     } catch (e) {
-      print('Error ensuring profile for favorites: $e');
+      AppLogger.e('Error ensuring profile for favorites', e);
       return false;
     }
   }
@@ -43,12 +44,12 @@ class FavoriteService {
     final user = _supabase.auth.currentUser;
     if (user == null) throw Exception('로그인이 필요합니다');
     
-    print('Adding favorite - User: ${user.id}, Shop: $shopId');
+    AppLogger.d('Adding favorite - User: ${user.id}, Shop: $shopId');
     
     // 프로필 확인 및 생성
     final profileExists = await _ensureProfileExists();
     if (!profileExists) {
-      print('Cannot add favorite - profile creation failed');
+      AppLogger.w('Cannot add favorite - profile creation failed');
       return false;
     }
     
@@ -57,13 +58,13 @@ class FavoriteService {
         'user_id': user.id,
         'shop_id': shopId,
       });
-      print('Favorite added successfully');
+      AppLogger.d('Favorite added successfully');
       return true;
     } catch (e) {
-      print('Error adding favorite: $e');
+      AppLogger.e('Error adding favorite', e);
       // 프로필 문제일 수 있으므로 다시 시도
       if (e.toString().contains('foreign key')) {
-        print('Foreign key error - trying to create profile again');
+        AppLogger.w('Foreign key error - trying to create profile again');
         await _ensureProfileExists();
       }
       return false;
@@ -75,7 +76,7 @@ class FavoriteService {
     final user = _supabase.auth.currentUser;
     if (user == null) throw Exception('로그인이 필요합니다');
     
-    print('Removing favorite - User: ${user.id}, Shop: $shopId');
+    AppLogger.d('Removing favorite - User: ${user.id}, Shop: $shopId');
     
     try {
       await _supabase
@@ -83,10 +84,10 @@ class FavoriteService {
           .delete()
           .eq('user_id', user.id)
           .eq('shop_id', shopId);
-      print('Favorite removed successfully');
+      AppLogger.d('Favorite removed successfully');
       return true;
     } catch (e) {
-      print('Error removing favorite: $e');
+      AppLogger.e('Error removing favorite', e);
       return false;
     }
   }
@@ -105,11 +106,11 @@ class FavoriteService {
   Future<bool> checkFavorite(String shopId) async {
     final user = _supabase.auth.currentUser;
     if (user == null) {
-      print('No user logged in for checking favorite');
+      AppLogger.d('No user logged in for checking favorite');
       return false;
     }
     
-    print('Checking favorite - User: ${user.id}, Shop: $shopId');
+    AppLogger.d('Checking favorite - User: ${user.id}, Shop: $shopId');
     
     try {
       final response = await _supabase
@@ -120,10 +121,10 @@ class FavoriteService {
           .maybeSingle();
       
       final isFavorite = response != null;
-      print('Favorite check result: $isFavorite');
+      AppLogger.d('Favorite check result: $isFavorite');
       return isFavorite;
     } catch (e) {
-      print('Error checking favorite: $e');
+      AppLogger.e('Error checking favorite', e);
       return false;
     }
   }
@@ -144,7 +145,7 @@ class FavoriteService {
           .map((item) => item['shop_id'] as String)
           .toList();
     } catch (e) {
-      print('Error fetching favorites: $e');
+      AppLogger.e('Error fetching favorites', e);
       return [];
     }
   }
@@ -165,7 +166,7 @@ class FavoriteService {
           .map((item) => item['shops'] as Map<String, dynamic>)
           .toList();
     } catch (e) {
-      print('Error fetching favorite shops: $e');
+      AppLogger.e('Error fetching favorite shops', e);
       return [];
     }
   }
@@ -183,7 +184,7 @@ class FavoriteService {
       
       return (response as List).length;
     } catch (e) {
-      print('Error counting favorites: $e');
+      AppLogger.e('Error counting favorites', e);
       return 0;
     }
   }

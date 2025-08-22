@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/review.dart';
+import '../utils/app_logger.dart';
 
 class ReviewService {
   final _supabase = Supabase.instance.client;
@@ -22,7 +23,7 @@ class ReviewService {
           .map((json) => Review.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching reviews: $e');
+      AppLogger.e('Error fetching reviews', e);
       return [];
     }
   }
@@ -40,7 +41,7 @@ class ReviewService {
           .map((json) => Review.fromJson(json))
           .toList();
     } catch (e) {
-      print('Error fetching user reviews: $e');
+      AppLogger.e('Error fetching user reviews', e);
       return [];
     }
   }
@@ -60,7 +61,7 @@ class ReviewService {
       }
       return null;
     } catch (e) {
-      print('Error fetching user review: $e');
+      AppLogger.e('Error fetching user review', e);
       return null;
     }
   }
@@ -74,7 +75,7 @@ class ReviewService {
     try {
       final user = _supabase.auth.currentUser;
       if (user == null) {
-        print('User not authenticated');
+        AppLogger.w('User not authenticated');
         return false;
       }
 
@@ -88,7 +89,7 @@ class ReviewService {
 
       return true;
     } catch (e) {
-      print('Error creating review: $e');
+      AppLogger.e('Error creating review', e);
       return false;
     }
   }
@@ -102,7 +103,7 @@ class ReviewService {
     try {
       final user = _supabase.auth.currentUser;
       if (user == null) {
-        print('User not authenticated');
+        AppLogger.w('User not authenticated');
         return false;
       }
 
@@ -118,7 +119,7 @@ class ReviewService {
 
       return true;
     } catch (e) {
-      print('Error updating review: $e');
+      AppLogger.e('Error updating review', e);
       return false;
     }
   }
@@ -128,7 +129,7 @@ class ReviewService {
     try {
       final user = _supabase.auth.currentUser;
       if (user == null) {
-        print('User not authenticated');
+        AppLogger.w('User not authenticated');
         return false;
       }
 
@@ -140,7 +141,7 @@ class ReviewService {
 
       return true;
     } catch (e) {
-      print('Error deleting review: $e');
+      AppLogger.e('Error deleting review', e);
       return false;
     }
   }
@@ -159,7 +160,7 @@ class ReviewService {
       }
       return null;
     } catch (e) {
-      print('Error fetching shop rating: $e');
+      AppLogger.e('Error fetching shop rating', e);
       return null;
     }
   }
@@ -181,7 +182,7 @@ class ReviewService {
       }
       return ratings;
     } catch (e) {
-      print('Error fetching shop ratings: $e');
+      AppLogger.e('Error fetching shop ratings', e);
       return {};
     }
   }

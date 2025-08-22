@@ -114,7 +114,7 @@ class _ShippingRegionWidgetState extends State<ShippingRegionWidget> {
       children: [
         // 일괄 설정
         Card(
-          color: AppColors.primaryPink.withOpacity(0.05),
+          color: AppColors.primaryPink.withValues(alpha: 0.05),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
