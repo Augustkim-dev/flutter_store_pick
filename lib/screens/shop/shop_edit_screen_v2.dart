@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import '../../models/shop.dart';
 import '../../models/brand.dart';
 import '../../services/shop_service.dart';
-import '../../services/category_service.dart';
-import '../../services/shipping_service.dart';
 import '../../theme/app_colors.dart';
 import 'shop_edit_tabs/basic_info_tab.dart';
 import 'shop_edit_tabs/offline_info_tab.dart';

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/announcement.dart';
 import '../services/announcement_service.dart';
-import '../theme/app_colors.dart';
 
 class AnnouncementListWidget extends StatefulWidget {
   final String shopId;

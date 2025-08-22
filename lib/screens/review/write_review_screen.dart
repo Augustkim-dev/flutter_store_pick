@@ -62,29 +62,31 @@ class _WriteReviewScreenState extends State<WriteReviewScreen> {
       );
     }
 
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+    if (!context.mounted) return;
+    setState(() {
+      _isLoading = false;
+    });
 
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(widget.existingReview != null 
-              ? '리뷰가 수정되었습니다' 
-              : '리뷰가 작성되었습니다'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.of(context).pop(true);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('리뷰 작성에 실패했습니다'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+    if (success) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(widget.existingReview != null 
+            ? '리뷰가 수정되었습니다' 
+            : '리뷰가 작성되었습니다'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      if (!context.mounted) return;
+      Navigator.of(context).pop(true);
+    } else {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('리뷰 작성에 실패했습니다'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -177,23 +179,22 @@ class _WriteReviewScreenState extends State<WriteReviewScreen> {
 
                 if (confirmed == true) {
                   final success = await _reviewService.deleteReview(widget.existingReview!.id);
-                  if (mounted) {
-                    if (success) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('리뷰가 삭제되었습니다'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                      Navigator.of(context).pop(true);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('리뷰 삭제에 실패했습니다'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
+                  if (!context.mounted) return;
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('리뷰가 삭제되었습니다'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                    Navigator.of(context).pop(true);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('리뷰 삭제에 실패했습니다'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
                   }
                 }
               },

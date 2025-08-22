@@ -48,15 +48,12 @@ class OfflineInfoTab extends StatefulWidget {
 }
 
 class _OfflineInfoTabState extends State<OfflineInfoTab> {
-  TimeOfDay? _lunchStart;
-  TimeOfDay? _lunchEnd;
   Map<String, Map<String, String>> _businessHours = {};
   List<String> _closedDays = [];
 
   @override
   void initState() {
     super.initState();
-    _initLunchTime();
     _initBusinessHours();
   }
 
@@ -74,49 +71,7 @@ class _OfflineInfoTabState extends State<OfflineInfoTab> {
     };
   }
 
-  void _initLunchTime() {
-    if (widget.lunchBreakStartController.text.isNotEmpty) {
-      final parts = widget.lunchBreakStartController.text.split(':');
-      if (parts.length == 2) {
-        _lunchStart = TimeOfDay(
-          hour: int.tryParse(parts[0]) ?? 12,
-          minute: int.tryParse(parts[1]) ?? 0,
-        );
-      }
-    }
-    if (widget.lunchBreakEndController.text.isNotEmpty) {
-      final parts = widget.lunchBreakEndController.text.split(':');
-      if (parts.length == 2) {
-        _lunchEnd = TimeOfDay(
-          hour: int.tryParse(parts[0]) ?? 13,
-          minute: int.tryParse(parts[1]) ?? 0,
-        );
-      }
-    }
-  }
 
-  Future<void> _selectTime(bool isStart) async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: isStart 
-        ? (_lunchStart ?? const TimeOfDay(hour: 12, minute: 0))
-        : (_lunchEnd ?? const TimeOfDay(hour: 13, minute: 0)),
-    );
-    
-    if (picked != null) {
-      setState(() {
-        if (isStart) {
-          _lunchStart = picked;
-          widget.lunchBreakStartController.text = 
-            '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
-        } else {
-          _lunchEnd = picked;
-          widget.lunchBreakEndController.text = 
-            '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
-        }
-      });
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

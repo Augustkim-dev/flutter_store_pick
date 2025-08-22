@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/review.dart';
 import '../services/review_service.dart';
 import '../services/auth_service.dart';
-import '../screens/review/write_review_screen.dart';
 import '../theme/app_colors.dart';
 
 class ReviewListWidget extends StatefulWidget {
