@@ -56,6 +56,10 @@ dependencies:
   image_picker: ^1.0.0  # For image upload
   cached_network_image: ^3.3.0  # For image caching
   table_calendar: ^3.0.9  # For date selection
+  logger: ^2.6.1
+  
+  # UI components
+  carousel_slider: ^5.0.0  # For event carousel
 
 dev_dependencies:
   flutter_test:
