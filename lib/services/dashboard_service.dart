@@ -1,3 +1,4 @@
+import 'dart:async';
 import '../models/shop.dart';
 import '../models/event.dart';
 import '../models/announcement.dart';
@@ -16,6 +17,8 @@ class DashboardData {
   final List<Announcement> recentAnnouncements;
   final List<Shop> favoriteShops;
   final DashboardStats stats;
+  final bool isLoadingComplete;  // 전체 로딩 완료 여부
+  final Map<String, bool> sectionLoadingStatus;  // 각 섹션별 로딩 상태
   
   DashboardData({
     required this.featuredEvents,
@@ -24,7 +27,16 @@ class DashboardData {
     required this.recentAnnouncements,
     required this.favoriteShops,
     required this.stats,
-  });
+    this.isLoadingComplete = false,
+    Map<String, bool>? sectionLoadingStatus,
+  }) : sectionLoadingStatus = sectionLoadingStatus ?? {
+    'stats': false,
+    'events': false,
+    'announcements': false,
+    'newShops': false,
+    'popularShops': false,
+    'favoriteShops': false,
+  };
 }
 
 class DashboardStats {
@@ -68,6 +80,136 @@ class DashboardService {
     _cachedData = null;
     _lastFetchTime = null;
     _eventService.clearCache();
+  }
+  
+  // Progressive loading - returns a stream that emits data as it becomes available
+  Stream<DashboardData> getDashboardDataProgressive({bool forceRefresh = false}) async* {
+    // Return cached data immediately if available and valid
+    if (!forceRefresh && _isCacheValid && _cachedData != null) {
+      yield _cachedData!;
+      return;
+    }
+    
+    // Track loading status for each section
+    final sectionStatus = <String, bool>{
+      'stats': false,
+      'events': false,
+      'announcements': false,
+      'newShops': false,
+      'popularShops': false,
+      'favoriteShops': false,
+    };
+    
+    // Initialize with empty data
+    DashboardData currentData = DashboardData(
+      featuredEvents: [],
+      newShops: [],
+      popularShops: [],
+      recentAnnouncements: [],
+      favoriteShops: [],
+      stats: DashboardStats(
+        totalShops: 0,
+        activeEvents: 0,
+        weeklyReviews: 0,
+        totalAnnouncements: 0,
+      ),
+      isLoadingComplete: false,
+      sectionLoadingStatus: Map.from(sectionStatus),
+    );
+    
+    // Emit initial empty state
+    yield currentData;
+    
+    try {
+      // Priority 1: Quick Stats (fastest to load)
+      final statsFuture = _fetchStats();
+      final stats = await statsFuture;
+      sectionStatus['stats'] = true;
+      currentData = DashboardData(
+        featuredEvents: currentData.featuredEvents,
+        newShops: currentData.newShops,
+        popularShops: currentData.popularShops,
+        recentAnnouncements: currentData.recentAnnouncements,
+        favoriteShops: currentData.favoriteShops,
+        stats: stats,
+        isLoadingComplete: false,
+        sectionLoadingStatus: Map.from(sectionStatus),
+      );
+      yield currentData;
+      
+      // Priority 2: Recent Announcements (text-based, fast)
+      final announcementsFuture = _fetchRecentAnnouncements();
+      final announcements = await announcementsFuture;
+      sectionStatus['announcements'] = true;
+      currentData = DashboardData(
+        featuredEvents: currentData.featuredEvents,
+        newShops: currentData.newShops,
+        popularShops: currentData.popularShops,
+        recentAnnouncements: announcements,
+        favoriteShops: currentData.favoriteShops,
+        stats: currentData.stats,
+        isLoadingComplete: false,
+        sectionLoadingStatus: Map.from(sectionStatus),
+      );
+      yield currentData;
+      
+      // Priority 3: Featured Events (important for engagement)
+      final eventsFuture = _fetchFeaturedEvents();
+      final events = await eventsFuture;
+      sectionStatus['events'] = true;
+      currentData = DashboardData(
+        featuredEvents: events,
+        newShops: currentData.newShops,
+        popularShops: currentData.popularShops,
+        recentAnnouncements: currentData.recentAnnouncements,
+        favoriteShops: currentData.favoriteShops,
+        stats: currentData.stats,
+        isLoadingComplete: false,
+        sectionLoadingStatus: Map.from(sectionStatus),
+      );
+      yield currentData;
+      
+      // Priority 4 & 5: Load remaining data in parallel
+      final remainingData = await Future.wait([
+        _fetchNewShops(),
+        _fetchPopularShops(),
+        _fetchFavoriteShops(),
+      ]);
+      
+      sectionStatus['newShops'] = true;
+      sectionStatus['popularShops'] = true;
+      sectionStatus['favoriteShops'] = true;
+      
+      currentData = DashboardData(
+        featuredEvents: currentData.featuredEvents,
+        newShops: remainingData[0],
+        popularShops: remainingData[1],
+        recentAnnouncements: currentData.recentAnnouncements,
+        favoriteShops: remainingData[2],
+        stats: currentData.stats,
+        isLoadingComplete: true,  // All sections loaded
+        sectionLoadingStatus: Map.from(sectionStatus),
+      );
+      
+      // Cache the complete data
+      _cachedData = currentData;
+      _lastFetchTime = DateTime.now();
+      
+      yield currentData;
+      
+    } catch (e) {
+      AppLogger.e('Error in progressive dashboard loading', e);
+      
+      // If we have partial data, yield it
+      if (currentData.stats.totalShops > 0 || 
+          currentData.featuredEvents.isNotEmpty ||
+          currentData.recentAnnouncements.isNotEmpty) {
+        yield currentData;
+      } else if (_cachedData != null) {
+        // Fall back to cached data if available
+        yield _cachedData!;
+      }
+    }
   }
   
   Future<DashboardData> getDashboardData({bool forceRefresh = false}) async {

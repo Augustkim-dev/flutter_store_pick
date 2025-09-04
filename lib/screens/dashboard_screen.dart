@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../models/shop.dart';
 import '../services/dashboard_service.dart';
 import '../widgets/dashboard/event_carousel_widget.dart';
 import '../widgets/dashboard/new_shops_widget.dart';
 import '../widgets/dashboard/recent_announcements_widget.dart';
 import '../widgets/dashboard/quick_stats_widget.dart';
-import '../widgets/skeleton_loader.dart';
+import '../widgets/skeleton/dashboard_skeletons.dart';
 import '../widgets/error_widget_custom.dart';
 import '../theme/app_colors.dart';
 
@@ -18,9 +19,8 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> with AutomaticKeepAliveClientMixin {
   final DashboardService _dashboardService = DashboardService();
-  DashboardData? _dashboardData;
-  bool _isLoading = true;
-  String? _errorMessage;
+  Stream<DashboardData>? _dataStream;
+  StreamController<DashboardData>? _streamController;
 
   @override
   bool get wantKeepAlive => true;
@@ -28,34 +28,36 @@ class _DashboardScreenState extends State<DashboardScreen> with AutomaticKeepAli
   @override
   void initState() {
     super.initState();
-    _loadDashboardData();
+    _initDataStream();
+  }
+  
+  void _initDataStream({bool forceRefresh = false}) {
+    _streamController?.close();
+    _streamController = StreamController<DashboardData>.broadcast();
+    
+    // Subscribe to the progressive loading stream
+    _dashboardService.getDashboardDataProgressive(forceRefresh: forceRefresh).listen(
+      (data) {
+        if (!_streamController!.isClosed) {
+          _streamController!.add(data);
+        }
+      },
+      onError: (error) {
+        if (!_streamController!.isClosed) {
+          _streamController!.addError(error);
+        }
+      },
+    );
+    
+    setState(() {
+      _dataStream = _streamController!.stream;
+    });
   }
 
-  Future<void> _loadDashboardData({bool forceRefresh = false}) async {
-    if (!forceRefresh) {
-      setState(() {
-        _isLoading = true;
-        _errorMessage = null;
-      });
-    }
-
-    try {
-      final data = await _dashboardService.getDashboardData(forceRefresh: forceRefresh);
-
-      if (mounted) {
-        setState(() {
-          _dashboardData = data;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = '대시보드 데이터를 불러오는데 실패했습니다.';
-          _isLoading = false;
-        });
-      }
-    }
+  @override
+  void dispose() {
+    _streamController?.close();
+    super.dispose();
   }
 
   @override
@@ -87,34 +89,36 @@ class _DashboardScreenState extends State<DashboardScreen> with AutomaticKeepAli
           ),
         ],
       ),
-      body: _buildBody(),
+      body: _dataStream == null 
+        ? const Center(child: CircularProgressIndicator())
+        : StreamBuilder<DashboardData>(
+            stream: _dataStream,
+            builder: (context, snapshot) {
+              if (snapshot.hasError) {
+                return CustomErrorWidget(
+                  message: '대시보드 데이터를 불러오는데 실패했습니다.',
+                  errorType: ErrorType.network,
+                  onRetry: () => _initDataStream(forceRefresh: true),
+                );
+              }
+              
+              if (!snapshot.hasData) {
+                // Show skeleton while loading
+                return const DashboardSkeleton();
+              }
+              
+              final data = snapshot.data!;
+              return _buildDashboardContent(data);
+            },
+          ),
     );
   }
 
-  Widget _buildBody() {
-    if (_isLoading) {
-      return _buildLoadingState();
-    }
-
-    if (_errorMessage != null) {
-      return CustomErrorWidget(
-        message: _errorMessage,
-        errorType: ErrorType.network,
-        onRetry: () => _loadDashboardData(),
-      );
-    }
-
-    if (_dashboardData == null) {
-      return EmptyStateWidget(
-        title: '데이터가 없습니다',
-        message: '표시할 대시보드 데이터가 없습니다.',
-        icon: Icons.dashboard_outlined,
-        action: ElevatedButton(onPressed: () => _loadDashboardData(), child: const Text('다시 시도')),
-      );
-    }
-
+  Widget _buildDashboardContent(DashboardData data) {
     return RefreshIndicator(
-      onRefresh: () => _loadDashboardData(forceRefresh: true),
+      onRefresh: () async {
+        _initDataStream(forceRefresh: true);
+      },
       child: CustomScrollView(
         slivers: [
           // Welcome message
@@ -138,41 +142,102 @@ class _DashboardScreenState extends State<DashboardScreen> with AutomaticKeepAli
             ),
           ),
 
-          // Quick stats
-          SliverToBoxAdapter(child: QuickStatsWidget(stats: _dashboardData!.stats)),
+          // Quick stats (show skeleton only while loading)
+          SliverToBoxAdapter(
+            child: data.sectionLoadingStatus['stats'] == true
+              ? QuickStatsWidget(stats: data.stats)
+              : const QuickStatsSkeleton(),
+          ),
 
           // Featured events carousel
-          if (_dashboardData!.featuredEvents.isNotEmpty)
+          if (data.featuredEvents.isNotEmpty)
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
-                child: EventCarouselWidget(events: _dashboardData!.featuredEvents),
+                child: EventCarouselWidget(events: data.featuredEvents),
+              ),
+            )
+          else if (data.sectionLoadingStatus['events'] != true)
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: EventCarouselSkeleton(),
               ),
             ),
 
-          // New shops
-          if (_dashboardData!.newShops.isNotEmpty)
+          // New shops (show skeleton only while loading)
+          if (data.newShops.isNotEmpty)
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
-                child: NewShopsWidget(shops: _dashboardData!.newShops),
+                child: NewShopsWidget(shops: data.newShops),
+              ),
+            )
+          else if (data.sectionLoadingStatus['newShops'] != true)
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: NewShopsSkeleton(),
               ),
             ),
 
           // Popular shops
-          if (_dashboardData!.popularShops.isNotEmpty) SliverToBoxAdapter(child: _buildPopularShops()),
+          if (data.popularShops.isNotEmpty) 
+            SliverToBoxAdapter(child: _buildPopularShops(data)),
 
-          // Recent announcements
-          if (_dashboardData!.recentAnnouncements.isNotEmpty)
+          // Recent announcements (show skeleton only while loading)
+          if (data.recentAnnouncements.isNotEmpty)
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8),
-                child: RecentAnnouncementsWidget(announcements: _dashboardData!.recentAnnouncements),
+                child: RecentAnnouncementsWidget(announcements: data.recentAnnouncements),
+              ),
+            )
+          else if (data.sectionLoadingStatus['announcements'] != true)
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: AnnouncementsSkeleton(),
               ),
             ),
 
           // Favorite shops quick access
-          if (_dashboardData!.favoriteShops.isNotEmpty) SliverToBoxAdapter(child: _buildFavoriteShops()),
+          if (data.favoriteShops.isNotEmpty) 
+            SliverToBoxAdapter(child: _buildFavoriteShops(data)),
+
+          // Show empty state message if loading is complete but no data
+          if (data.isLoadingComplete && 
+              data.featuredEvents.isEmpty && 
+              data.newShops.isEmpty && 
+              data.recentAnnouncements.isEmpty)
+            SliverToBoxAdapter(
+              child: Container(
+                padding: const EdgeInsets.all(32),
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.inbox_outlined,
+                      size: 64,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      '아직 표시할 콘텐츠가 없습니다',
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '곧 새로운 콘텐츠가 추가될 예정입니다',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
           // Bottom padding
           const SliverToBoxAdapter(child: SizedBox(height: 20)),
@@ -181,41 +246,7 @@ class _DashboardScreenState extends State<DashboardScreen> with AutomaticKeepAli
     );
   }
 
-  Widget _buildLoadingState() {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        // Welcome message skeleton
-        const SkeletonLoader(height: 30, width: 150),
-        const SizedBox(height: 8),
-        const SkeletonLoader(height: 20, width: 200),
-        const SizedBox(height: 20),
-
-        // Stats skeleton
-        const SkeletonLoader(height: 150, width: double.infinity),
-        const SizedBox(height: 20),
-
-        // Event carousel skeleton
-        const SkeletonLoader(height: 200, width: double.infinity),
-        const SizedBox(height: 20),
-
-        // Shops skeleton
-        Row(
-          children: List.generate(
-            3,
-            (index) => const Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 4),
-                child: SkeletonLoader(height: 120, width: double.infinity),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPopularShops() {
+  Widget _buildPopularShops(DashboardData data) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -242,9 +273,9 @@ class _DashboardScreenState extends State<DashboardScreen> with AutomaticKeepAli
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemCount: _dashboardData!.popularShops.length,
+          itemCount: data.popularShops.length,
           itemBuilder: (context, index) {
-            final shop = _dashboardData!.popularShops[index];
+            final shop = data.popularShops[index];
             return ListTile(
               leading: CircleAvatar(
                 backgroundColor: AppColors.primaryPink.withAlpha(26),
@@ -286,7 +317,7 @@ class _DashboardScreenState extends State<DashboardScreen> with AutomaticKeepAli
     );
   }
 
-  Widget _buildFavoriteShops() {
+  Widget _buildFavoriteShops(DashboardData data) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -311,9 +342,9 @@ class _DashboardScreenState extends State<DashboardScreen> with AutomaticKeepAli
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            itemCount: _dashboardData!.favoriteShops.length,
+            itemCount: data.favoriteShops.length,
             itemBuilder: (context, index) {
-              final shop = _dashboardData!.favoriteShops[index];
+              final shop = data.favoriteShops[index];
               return Container(
                 width: 100,
                 margin: const EdgeInsets.symmetric(horizontal: 4),
