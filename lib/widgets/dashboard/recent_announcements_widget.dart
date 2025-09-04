@@ -5,11 +5,8 @@ import '../../screens/shop_detail_screen_v2.dart';
 
 class RecentAnnouncementsWidget extends StatelessWidget {
   final List<Announcement> announcements;
-  
-  const RecentAnnouncementsWidget({
-    super.key,
-    required this.announcements,
-  });
+
+  const RecentAnnouncementsWidget({super.key, required this.announcements});
 
   @override
   Widget build(BuildContext context) {
@@ -27,18 +24,10 @@ class RecentAnnouncementsWidget extends StatelessWidget {
               Container(
                 width: 4,
                 height: 20,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryPink,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+                decoration: BoxDecoration(color: AppColors.primaryPink, borderRadius: BorderRadius.circular(2)),
               ),
               const SizedBox(width: 8),
-              Text(
-                '최신 공지사항',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              Text('최신 공지사항', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
             ],
           ),
         ),
@@ -60,16 +49,12 @@ class RecentAnnouncementsWidget extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => ShopDetailScreenV2(shopId: announcement.shopId),
-            ),
-          );
+          Navigator.of(
+            context,
+          ).push(MaterialPageRoute(builder: (context) => ShopDetailScreenV2(shopId: announcement.shopId)));
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
@@ -82,24 +67,18 @@ class RecentAnnouncementsWidget extends StatelessWidget {
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: announcement.isImportant
-                      ? Colors.red.withAlpha(26)
-                      : AppColors.primaryPink.withAlpha(26),
+                  color: announcement.isImportant ? Colors.red.withAlpha(26) : AppColors.primaryPink.withAlpha(26),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  announcement.isImportant
-                      ? Icons.priority_high
-                      : Icons.campaign,
-                  color: announcement.isImportant
-                      ? Colors.red
-                      : AppColors.primaryPink,
+                  announcement.isImportant ? Icons.priority_high : Icons.campaign,
+                  color: announcement.isImportant ? Colors.red : AppColors.primaryPink,
                   size: 20,
                 ),
               ),
-              
+
               const SizedBox(width: 12),
-              
+
               // Content
               Expanded(
                 child: Column(
@@ -118,48 +97,36 @@ class RecentAnnouncementsWidget extends StatelessWidget {
                             ),
                             child: Text(
                               announcement.shopName!,
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                              ),
+                              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
                             ),
                           ),
                         Text(
                           _getTimeAgo(announcement.createdAt),
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey[600],
-                          ),
+                          style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 6),
-                    
+
                     // Title
                     Text(
                       announcement.title,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    
+
                     const SizedBox(height: 4),
-                    
+
                     // Content preview
                     Text(
                       announcement.content,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[700],
-                      ),
+                      style: TextStyle(fontSize: 13, color: Colors.grey[700]),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    
+
                     // Badges
                     const SizedBox(height: 6),
                     Row(
@@ -175,19 +142,11 @@ class RecentAnnouncementsWidget extends StatelessWidget {
                             child: const Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(
-                                  Icons.push_pin,
-                                  size: 10,
-                                  color: Colors.orange,
-                                ),
+                                Icon(Icons.push_pin, size: 10, color: Colors.orange),
                                 SizedBox(width: 2),
                                 Text(
                                   '고정',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.orange,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: TextStyle(fontSize: 10, color: Colors.orange, fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
@@ -201,11 +160,7 @@ class RecentAnnouncementsWidget extends StatelessWidget {
                             ),
                             child: const Text(
                               '중요',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.red,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: TextStyle(fontSize: 10, color: Colors.red, fontWeight: FontWeight.bold),
                             ),
                           ),
                       ],
@@ -213,13 +168,9 @@ class RecentAnnouncementsWidget extends StatelessWidget {
                   ],
                 ),
               ),
-              
+
               // Arrow
-              const Icon(
-                Icons.chevron_right,
-                color: Colors.grey,
-                size: 20,
-              ),
+              const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
             ],
           ),
         ),
@@ -230,7 +181,7 @@ class RecentAnnouncementsWidget extends StatelessWidget {
   String _getTimeAgo(DateTime dateTime) {
     final now = DateTime.now();
     final difference = now.difference(dateTime);
-    
+
     if (difference.inMinutes < 60) {
       return '${difference.inMinutes}분 전';
     } else if (difference.inHours < 24) {
